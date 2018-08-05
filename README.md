@@ -1,7 +1,7 @@
 # Kotlin4MC
 Kotlin for Minecraft
 
-### Implement it
+### Use it
 
 - Gradle: add this to your build.gradle
 

@@ -10,12 +10,9 @@ Kotlin for Minecraft
       }
 
       dependencies {
-          compile 'fr.rhaz.minecraft:kotlin4mc:1.2.60'
+          compileOnly 'fr.rhaz.minecraft:kotlin4mc:1.2.60'
       }
 
-      jar {
-          from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-      }
 
 - Maven: add this to your pom.xml
 
@@ -31,6 +28,6 @@ Kotlin for Minecraft
             <groupId>fr.rhaz.minecraft</groupId>
             <artifactId>kotlin4mc</artifactId>
             <version>1.2.60</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
       </dependencies>

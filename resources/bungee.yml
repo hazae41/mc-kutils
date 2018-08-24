@@ -1,0 +1,4 @@
+name: @name@
+version: @version@
+main: fr.rhaz.minecraft.Kotlin4Bungee
+author: Hazae41

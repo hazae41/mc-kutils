@@ -10,7 +10,7 @@ Kotlin for Minecraft
       }
 
       dependencies {
-          compileOnly 'fr.rhaz.minecraft:kotlin4mc:1.2.60'
+          compileOnly 'fr.rhaz.minecraft:kotlin4mc:1.2.61'
       }
 
 
@@ -27,7 +27,7 @@ Kotlin for Minecraft
         <dependency>
             <groupId>fr.rhaz.minecraft</groupId>
             <artifactId>kotlin4mc</artifactId>
-            <version>1.2.60</version>
+            <version>1.2.61</version>
             <scope>provided</scope>
         </dependency>
       </dependencies>

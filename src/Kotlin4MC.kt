@@ -3,20 +3,20 @@ package fr.rhaz.minecraft
 import com.google.gson.JsonParser
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.ChatColor.LIGHT_PURPLE
-import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.ClickEvent.Action.OPEN_URL
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.event.PostLoginEvent
-import net.md_5.bungee.api.plugin.Command
-import org.bukkit.command.CommandExecutor
+import net.md_5.bungee.event.EventBus
 import org.bukkit.event.player.PlayerJoinEvent
 import java.io.File
 import java.io.IOException
 import java.io.InputStreamReader
+import java.lang.reflect.Method
 import java.net.URL
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.Lock
 import java.util.function.BiConsumer
 import java.util.function.Consumer
 
@@ -24,6 +24,7 @@ import java.util.function.Consumer
 typealias BungeePlugin = net.md_5.bungee.api.plugin.Plugin
 typealias BungeeSender = net.md_5.bungee.api.CommandSender
 typealias BungeeEvent = net.md_5.bungee.api.plugin.Event
+typealias BungeeEventPriority = net.md_5.bungee.event.EventPriority
 typealias BungeeListener = net.md_5.bungee.api.plugin.Listener
 typealias BungeeEventHandler = net.md_5.bungee.event.EventHandler
 typealias BungeeConfiguration = net.md_5.bungee.config.Configuration
@@ -166,7 +167,7 @@ fun BukkitPlugin.load(
     return BukkitYamlConfiguration.loadConfiguration(file) ?: null;
 }
 
-// ----------------------------- LISTENER -----------------------------
+// ----------------------------- LISTENERS -----------------------------
 inline fun <reified T: BukkitEvent> BukkitPlugin.listen(
     priority: BukkitEventPriority = BukkitEventPriority.NORMAL,
     crossinline callback: (T) -> Unit
@@ -178,6 +179,38 @@ inline fun <reified T: BukkitEvent> BukkitPlugin.listen(
     )
 }
 
+inline fun <reified T: BungeeEvent> BungeePlugin.listen(
+    priority: Byte = BungeeEventPriority.NORMAL,
+    crossinline callback: (T) -> Unit
+){
+    val pm = proxy.pluginManager
+    val pmc = pm::class.java
+    val bus = pmc.getDeclaredField("eventBus").run {
+        isAccessible = true; get(pm) as EventBus
+    }
+    val busc = bus::class.java
+    val lock = busc.getDeclaredField("lock").run {
+        isAccessible = true; get(bus) as Lock
+    }
+    val bLaP = busc.getDeclaredField("byListenerAndPriority").run {
+        isAccessible = true; get(bus) as HashMap<Class<*>, Map<Byte, Map<Object, Array<Method>>>>
+    }
+    val priorities = bLaP[T::class.java] as? HashMap<Byte, Map<Object, Array<Method>>>
+            ?: HashMap<Byte, Map<Object, Array<Method>>>()
+                    .also { bLaP[T::class.java] = it }
+    val handlers = priorities[priority] as? HashMap<Object, Array<Method>>
+            ?: HashMap<Object, Array<Method>>()
+                    .also { priorities[priority] = it }
+    val listener = object: BungeeListener{
+        fun onEvent(it: T) = callback(it)
+    }
+    handlers[listener as Object] = arrayOf(listener::class.java.getMethod("onEvent", BungeeEvent::class.java))
+    busc.getDeclaredMethod("bakeHandlers", Class::class.java).apply {
+        isAccessible = true; invoke(bus, T::class.java)
+    }
+    proxy.pluginManager.registerListener(this, listener)
+}
+
 // ----------------------------- COMMANDS -----------------------------
 fun BungeePlugin.command(
     name: String,
@@ -186,8 +219,8 @@ fun BungeePlugin.command(
     callback: (BungeeSender, Array<String>) -> Unit
 ){
     proxy.pluginManager.registerCommand(this,
-        object: Command(name, permission, *aliases){
-            override fun execute(sender: CommandSender, args: Array<String>)
+        object: BungeeCommand(name, permission, *aliases){
+            override fun execute(sender: BungeeSender, args: Array<String>)
                 = callback(sender, args)
         }
     )
@@ -242,4 +275,35 @@ fun BukkitPlugin.schedule(
     }
     if(async) server.scheduler.runTaskAsynchronously(this, callback)
     else server.scheduler.runTask(this, callback)
+}
+
+fun BungeePlugin.schedule(
+    async: Boolean = false,
+    delay: Long? = null,
+    period: Long? = null,
+    unit: TimeUnit? = null,
+    callback: () -> Unit
+){
+    if(period != null){
+        var delay = delay ?: 0
+        val unit = unit ?: TimeUnit.MILLISECONDS.also{ delay *= 50 }
+        if(async)
+            proxy.scheduler.schedule(this, {
+                proxy.scheduler.runAsync(this, callback)
+            }, delay, period, unit)
+        else proxy.scheduler.schedule(this, callback, delay, period, unit)
+        return;
+    }
+    if(delay != null){
+        var delay = delay
+        val unit = unit ?: TimeUnit.MILLISECONDS.also{ delay *= 50 }
+        if(async)
+            proxy.scheduler.schedule(this, {
+                proxy.scheduler.runAsync(this, callback)
+            }, delay, unit)
+        else proxy.scheduler.schedule(this, callback, delay, unit)
+        return;
+    }
+    if(async) proxy.scheduler.runAsync(this, callback)
+    else proxy.scheduler.schedule(this, callback, 0, TimeUnit.MILLISECONDS)
 }

@@ -295,7 +295,6 @@ and the permission (the default permission is "rhaz.update")
 update(15938, LIGHT_PURPLE, "myplugin.updates")
 ```
 
-
 ### How to implement it?
 
 - Gradle: add this to your build.gradle

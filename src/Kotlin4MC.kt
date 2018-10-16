@@ -48,6 +48,10 @@ fun BukkitPlugin.info(msg: String) = logger.info(msg)
 fun BukkitPlugin.warning(msg: String) = logger.warning(msg)
 fun BukkitPlugin.severe(msg: String) = logger.severe(msg)
 
+fun BungeePlugin.info(msg: String) = logger.info(msg)
+fun BungeePlugin.warning(msg: String) = logger.warning(msg)
+fun BungeePlugin.severe(msg: String) = logger.severe(msg)
+
 // ----------------------------- KOTLIN4MC PLUGIN -----------------------------
 
 class Kotlin4Bukkit: BukkitPlugin(){
@@ -62,13 +66,13 @@ class Kotlin4Sponge
 
 // ----------------------------- JAVA COMPAT -----------------------------
 val unit = Unit
-val String.lc get() = toLowerCase()
 fun <T> listener(callable: Consumer<T>): Function1<T, Unit> = { t -> callable.accept(t); Unit }
 fun <T,U> listener(callable: BiConsumer<T, U>): Function2<T, U, Unit> = { t, u -> callable.accept(t, u); Unit }
 fun <T,U,V> listener(callable: TriConsumer<T, U, V>): Function3<T, U, V, Unit> = { t, u, v -> callable.accept(t, u, v); Unit }
 
-// ----------------------------- FILE ACCESS -----------------------------
+// ----------------------------- OTHERS -----------------------------
 operator fun File.get(key: String) = File(this, key)
+val String.lc get() = toLowerCase()
 
 // ----------------------------- MESSAGING -----------------------------
 fun BungeeSender.msg(msg: String) = msg(text(msg))

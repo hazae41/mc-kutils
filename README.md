@@ -304,7 +304,7 @@ update(15938, LIGHT_PURPLE, "myplugin.updates")
       }
 
       dependencies {
-          compileOnly 'fr.rhaz.minecraft:kotlin4mc:1.2.61'
+          compileOnly 'fr.rhaz.minecraft:kotlin4mc:2.0'
       }
 
 
@@ -321,7 +321,7 @@ update(15938, LIGHT_PURPLE, "myplugin.updates")
         <dependency>
             <groupId>fr.rhaz.minecraft</groupId>
             <artifactId>kotlin4mc</artifactId>
-            <version>1.2.61</version>
+            <version>2.0</version>
             <scope>provided</scope>
         </dependency>
       </dependencies>

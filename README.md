@@ -110,9 +110,98 @@ schedule(true, period = 3, unit = TimeUnit.MINUTES){
 
 Warning: the default unit is ticks, even on BungeeCord
 
-Warning: never use TimeUnit.NANOSECONDS and TimeUnit.MICROSECONDS
+Warning 2: never use TimeUnit.NANOSECONDS and TimeUnit.MICROSECONDS
 
-Warning 2: do not use TimeUnit.MILLISECONDS with Bukkit
+Warning 3: do not use TimeUnit.MILLISECONDS with Bukkit
+
+### Fast access to files of a directory
+
+You can easily access a file or a subfolder with the get() operator applied to a File
+
+##### With Kotlin4MC
+```kotlin
+val config = dataFolder["config.yml"]
+val lang = dataFolder["langs"]["en_US.yml"]
+```
+
+##### Without Kotlin4MC
+```kotlin
+val config = File(dataFolder, "config.yml")
+val lang = File(File(dataFolder, "langs"), "en_US.yml")
+```
+
+### Typealiases for multi-platform plugins
+
+If you want to specify the platform of any type, just add "Bungee" or "Bukkit" before its name
+
+##### With Kotlin4MC: both platforms on the same file
+```kotlin
+class MyPluginOnBungee: BungeePlugin{
+    override fun onEnable() = info("Hello BungeeCord!")
+}
+
+class MyPluginOnBukkit: BukkitPlugin{
+    override fun onEnable() = info("Hello Bukkit!")
+}
+```
+
+##### Without Kotlin4MC: two separated files for each platform
+
+### Simple lower case
+
+You can use .lc after any String to get its lower case version
+
+##### With Kotlin4MC
+```kotlin
+"HeLLo WorLd".lc // Beautiful
+```
+
+##### Without Kotlin4MC
+```kotlin
+"HeLLo WorLd".toLowerCase() // Ugly
+```
+
+### Java compat optimization
+
+Java developers that use your Kotlinized plugins can easily access the Unit type by using getUnit() in any context
+and they can access lambda functions of Kotlin with listener()
+
+Let's say you have this method in your API
+
+```kotlin
+fun performTask(callback: (String) -> Unit) =
+    Thread {
+        // long task
+        val result: String = ...
+        callback(result)
+    }
+```
+
+And Java developers need to use it
+
+##### With Kotlin4MC: the developer does not need Kotlin stdlib to access Unit
+```java
+// Java using getUnit()
+performTask((result) -> {
+    player.msg(result);
+    return getUnit();
+})
+
+// Java using listener()
+performTask(
+    listener((result) -> player.msg(result))
+)
+// Listener converts a Java consumer into a Kotlin function
+```
+
+##### Without Kotlin4MC: the developer needs Kotlin stdlib to access Unit
+```java
+// Java using Unit.INSTANCE
+performTask((result) -> {
+    player.msg(result);
+    return Unit.INSTANCE;
+})
+```
 
 ### Plugin updates checker
 

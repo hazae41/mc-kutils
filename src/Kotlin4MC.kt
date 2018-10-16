@@ -2,29 +2,35 @@ package fr.rhaz.minecraft
 
 import com.google.gson.JsonParser
 import net.md_5.bungee.api.ChatColor
-import net.md_5.bungee.api.ChatColor.*
-import net.md_5.bungee.api.CommandSender as BungeeSender
+import net.md_5.bungee.api.ChatColor.LIGHT_PURPLE
 import net.md_5.bungee.api.chat.ClickEvent
-import net.md_5.bungee.api.chat.ClickEvent.Action.*
+import net.md_5.bungee.api.chat.ClickEvent.Action.OPEN_URL
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.event.PostLoginEvent
-import org.bukkit.event.Event
-import org.bukkit.event.EventPriority
 import org.bukkit.event.player.PlayerJoinEvent
 import java.io.File
 import java.io.IOException
 import java.io.InputStreamReader
 import java.net.URL
 import java.util.concurrent.TimeUnit
-import net.md_5.bungee.api.plugin.Event as BungeeEvent
-import net.md_5.bungee.api.plugin.Listener as BungeeListener
-import net.md_5.bungee.api.plugin.Plugin as BungeePlugin
-import net.md_5.bungee.config.YamlConfiguration as BungeeYaml
-import net.md_5.bungee.event.EventHandler as BungeeEventHandler
-import org.bukkit.event.EventHandler as BukkitEventHandler
-import org.bukkit.event.Listener as BukkitListener
-import org.bukkit.plugin.java.JavaPlugin as BukkitPlugin
-import org.spongepowered.api.plugin.Plugin as SpongePlugin
+import java.util.function.BiConsumer
+import java.util.function.Consumer
+
+typealias BungeePlugin = net.md_5.bungee.api.plugin.Plugin
+typealias BungeeYaml = net.md_5.bungee.config.YamlConfiguration
+typealias BungeeSender = net.md_5.bungee.api.CommandSender
+typealias BungeeEvent = net.md_5.bungee.api.plugin.Event
+typealias BungeeListener = net.md_5.bungee.api.plugin.Listener
+typealias BungeeEventHandler = net.md_5.bungee.event.EventHandler
+
+typealias BukkitPlugin = org.bukkit.plugin.java.JavaPlugin
+typealias BukkitSender = org.bukkit.command.CommandSender
+typealias BukkitEvent = org.bukkit.event.Event
+typealias BukkitListener = org.bukkit.event.Listener
+typealias BukkitEventPriority = org.bukkit.event.EventPriority
+typealias BukkitEventHandler = org.bukkit.event.EventHandler
+
+typealias SpongePlugin = org.spongepowered.api.plugin.Plugin
 
 class Kotlin4Bukkit: BukkitPlugin(){
     override fun onEnable() = update(58015, LIGHT_PURPLE)
@@ -36,31 +42,19 @@ class Kotlin4Bungee: BungeePlugin(){
 @SpongePlugin(id = "kotlin4mc", name = "Kotlin4Sponge")
 class Kotlin4Sponge
 
-// Java compat for the Unit type
-// Usage: getUnit() <=> Unit.INSTANCE
+// ----------------------------- JAVA COMPAT -----------------------------
 val unit = Unit
-
-// Get the lowercase version of any String
-// Usage "HeLlO wOrLd".lc <=> *.toLowerCase() => "hello world"
 val String.lc get() = toLowerCase()
+fun <T> listener(callable: Consumer<T>): Function1<T, Unit> = { t -> callable.accept(t); Unit }
+fun <T,U> listener(callable: BiConsumer<T, U>): Function2<T, U, Unit> = { t, u -> callable.accept(t, u); Unit }
+fun <T,U,V> listener(callable: TriConsumer<T, U, V>): Function3<T, U, V, Unit> = { t, u, v -> callable.accept(t, u, v); Unit }
 
-// Usage: dataFolder["config.yml"] <=> File(dataFolder, "config.yml")
 operator fun File.get(key: String) = File(this, key)
 
-// Short messages sending
-// Usage: player.msg("hello world") <=> player.sendMessage(TextComponent("hello world".replace("&", "§")))
 fun BungeeSender.msg(msg: String) = msg(text(msg))
 fun BungeeSender.msg(text: TextComponent) = sendMessage(text)
-// Componentize and colorize any message
 fun text(string: String) = TextComponent(string.replace("&", "§"))
 
-// Get latest version of a plugin ID
-// What's my plugin ID?
-// Given this resource: https://www.spigotmc.org/resources/commandsdispatcher-send-commands-to-your-servers-using-sockets.9854/
-// The plugin ID is 9854
-// Usage: spiget(9854){
-//   your code using "it" as the latest version
-// }
 fun spiget(id: Int, callback: (String) -> Unit) = Thread {
     try {
         val base = "https://api.spiget.org/v2/resources/"
@@ -71,8 +65,6 @@ fun spiget(id: Int, callback: (String) -> Unit) = Thread {
 }.start()
 
 
-// Check if a version is newer than another
-// Usage: "1.0" newerThan "0.9.5" => true
 infix fun String.newerThan(v: String): Boolean = false.also{
     val s1 = split('.');
     val s2 = v.split('.');
@@ -84,11 +76,7 @@ infix fun String.newerThan(v: String): Boolean = false.also{
     }
 }
 
-// Notifications of plugin updates for Bukkit
-// Usage: update(9854, RED, "myplugin.update")
-// Will check the latest version of plugin ID 9854
-// the message will be in red
-// and sent to players with permission "myplugin.update"
+
 fun BukkitPlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: String = "rhaz.update")
     = spiget(id) here@{
 
@@ -113,11 +101,7 @@ fun BukkitPlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: St
         }
     }
 
-// Notifications of plugin updates for BungeeCord
-// Usage: update(9854, RED, "myplugin.update")
-// Will check the latest version of plugin ID 9854
-// the message will be in red
-// and sent to players with permission "myplugin.update"
+
 fun BungeePlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: String = "rhaz.update")
     = spiget(id) here@{
         if(!(it newerThan description.version)) return@here;
@@ -144,8 +128,8 @@ fun BungeePlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: St
         })
     }
 
-inline fun <reified T: Event> BukkitPlugin.listen(
-    priority: EventPriority = EventPriority.NORMAL,
+inline fun <reified T: BukkitEvent> BukkitPlugin.listen(
+    priority: BukkitEventPriority = BukkitEventPriority.NORMAL,
     crossinline callback: (T) -> Unit
 ){
     server.pluginManager.registerEvent(

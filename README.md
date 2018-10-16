@@ -137,9 +137,7 @@ If you want to specify the platform of any type, just add "Bungee" or "Bukkit" b
 ##### With Kotlin4MC: both platforms on the same file
 ```kotlin
 class MyPluginOnBungee: BungeePlugin{
-    override fun onEnable() = listen<PlayerJoinEvent>{
-        it.player is
-    }
+    override fun onEnable() = info("Hello Bungee!")
 }
 
 class MyPluginOnBukkit: BukkitPlugin{

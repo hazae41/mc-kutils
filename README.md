@@ -130,14 +130,16 @@ val config = File(dataFolder, "config.yml")
 val lang = File(File(dataFolder, "langs"), "en_US.yml")
 ```
 
-### Typealiases for multi-platform plugins
+### Type aliases for multi-platform plugins
 
 If you want to specify the platform of any type, just add "Bungee" or "Bukkit" before its name
 
 ##### With Kotlin4MC: both platforms on the same file
 ```kotlin
 class MyPluginOnBungee: BungeePlugin{
-    override fun onEnable() = info("Hello BungeeCord!")
+    override fun onEnable() = listen<PlayerJoinEvent>{
+        it.player is
+    }
 }
 
 class MyPluginOnBukkit: BukkitPlugin{
@@ -201,6 +203,76 @@ performTask((result) -> {
     player.msg(result);
     return Unit.INSTANCE;
 })
+```
+
+### Simple configuration loading
+
+Load the config from the data folder, otherwise, copy it from the resource "config.yml".
+
+If there is an error, do not continue.
+
+```kotlin
+val configFile = dataFolder["config.yml"]
+val config = load(configFile, "config.yml")
+    ?: return severe("Could not load configuration")
+```
+
+You can ommit the resource argument, it will copy the resource
+
+- "config/bungee.yml" if used on BungeeCord
+
+- "config/bukkit.yml" if used on Bukkit
+
+```kotlin
+val configFile = dataFolder["config.yml"]
+val config = load(configFile)
+    ?: return severe("Could not load configuration")
+```
+
+### Fast logging
+
+##### With Kotlin4MC
+```kotlin
+info("Hello world!")
+```
+
+##### Without Kotlin4MC
+```kotlin
+logger.info("Hello world!")
+```
+
+##### In Java
+```java
+getLogger().info("Hello world!")
+```
+
+### Simplified commands
+
+##### With Kotlin4MC
+```kotlin
+command("hello"){
+    sender, args ->
+    sender.msg("&bHello!")
+}
+```
+
+##### Without Kotlin4MC
+```kotlin
+// Bungee
+proxy.pluginManager.registerCommand(this,
+    object: Command("hello"){
+        override fun execute(sender: CommandSender, args: Array<String>){
+            sender.sendMessage("§bHello!")
+        }
+    }
+)
+
+// Bukkit
+getCommand(name).executor = CommandExecutor {
+    sender, command, label, args ->
+    sender.sendMessage("§bHello!")
+    true;
+}
 ```
 
 ### Plugin updates checker

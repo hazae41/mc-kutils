@@ -3,25 +3,33 @@ package fr.rhaz.minecraft
 import com.google.gson.JsonParser
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.ChatColor.LIGHT_PURPLE
+import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.ClickEvent.Action.OPEN_URL
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.event.PostLoginEvent
+import net.md_5.bungee.api.plugin.Command
+import org.bukkit.command.CommandExecutor
 import org.bukkit.event.player.PlayerJoinEvent
 import java.io.File
 import java.io.IOException
 import java.io.InputStreamReader
 import java.net.URL
+import java.nio.file.Files
 import java.util.concurrent.TimeUnit
 import java.util.function.BiConsumer
 import java.util.function.Consumer
 
+// ----------------------------- TYPE ALIASES -----------------------------
 typealias BungeePlugin = net.md_5.bungee.api.plugin.Plugin
-typealias BungeeYaml = net.md_5.bungee.config.YamlConfiguration
 typealias BungeeSender = net.md_5.bungee.api.CommandSender
 typealias BungeeEvent = net.md_5.bungee.api.plugin.Event
 typealias BungeeListener = net.md_5.bungee.api.plugin.Listener
 typealias BungeeEventHandler = net.md_5.bungee.event.EventHandler
+typealias BungeeConfiguration = net.md_5.bungee.config.Configuration
+typealias BungeeYaml = net.md_5.bungee.config.YamlConfiguration
+typealias BungeeConfigurationProvider = net.md_5.bungee.config.ConfigurationProvider
+typealias BungeeCommand = net.md_5.bungee.api.plugin.Command
 
 typealias BukkitPlugin = org.bukkit.plugin.java.JavaPlugin
 typealias BukkitSender = org.bukkit.command.CommandSender
@@ -29,8 +37,17 @@ typealias BukkitEvent = org.bukkit.event.Event
 typealias BukkitListener = org.bukkit.event.Listener
 typealias BukkitEventPriority = org.bukkit.event.EventPriority
 typealias BukkitEventHandler = org.bukkit.event.EventHandler
+typealias BukkitYamlConfiguration = org.bukkit.configuration.file.YamlConfiguration
+typealias BukkitCommandExecutor = org.bukkit.command.CommandExecutor
 
 typealias SpongePlugin = org.spongepowered.api.plugin.Plugin
+
+// ----------------------------- LOGGING -----------------------------
+fun BukkitPlugin.info(msg: String) = logger.info(msg)
+fun BukkitPlugin.warning(msg: String) = logger.warning(msg)
+fun BukkitPlugin.severe(msg: String) = logger.severe(msg)
+
+// ----------------------------- KOTLIN4MC PLUGIN -----------------------------
 
 class Kotlin4Bukkit: BukkitPlugin(){
     override fun onEnable() = update(58015, LIGHT_PURPLE)
@@ -49,12 +66,15 @@ fun <T> listener(callable: Consumer<T>): Function1<T, Unit> = { t -> callable.ac
 fun <T,U> listener(callable: BiConsumer<T, U>): Function2<T, U, Unit> = { t, u -> callable.accept(t, u); Unit }
 fun <T,U,V> listener(callable: TriConsumer<T, U, V>): Function3<T, U, V, Unit> = { t, u, v -> callable.accept(t, u, v); Unit }
 
+// ----------------------------- FILE ACCESS -----------------------------
 operator fun File.get(key: String) = File(this, key)
 
+// ----------------------------- MESSAGING -----------------------------
 fun BungeeSender.msg(msg: String) = msg(text(msg))
 fun BungeeSender.msg(text: TextComponent) = sendMessage(text)
 fun text(string: String) = TextComponent(string.replace("&", "§"))
 
+// ----------------------------- UPDATES CHECKER -----------------------------
 fun spiget(id: Int, callback: (String) -> Unit) = Thread {
     try {
         val base = "https://api.spiget.org/v2/resources/"
@@ -63,7 +83,6 @@ fun spiget(id: Int, callback: (String) -> Unit) = Thread {
         callback(json.last().asJsonObject["name"].asString)
     } catch (e: IOException){}
 }.start()
-
 
 infix fun String.newerThan(v: String): Boolean = false.also{
     val s1 = split('.');
@@ -75,7 +94,6 @@ infix fun String.newerThan(v: String): Boolean = false.also{
         if(s1[i].toInt() < s2[i].toInt()) return false;
     }
 }
-
 
 fun BukkitPlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: String = "rhaz.update")
     = spiget(id) here@{
@@ -100,7 +118,6 @@ fun BukkitPlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: St
                 it.player.spigot().sendMessage(message)
         }
     }
-
 
 fun BungeePlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: String = "rhaz.update")
     = spiget(id) here@{
@@ -128,6 +145,28 @@ fun BungeePlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: St
         })
     }
 
+// ----------------------------- CONFIG LOADING -----------------------------
+val BungeePlugin.provider get() = BungeeConfigurationProvider.getProvider(BungeeYaml::class.java)
+fun BungeePlugin.load(
+    file: File,
+    resource: String = file.nameWithoutExtension+"/bungee.yml"
+) = try {
+    if (!dataFolder.exists()) dataFolder.mkdir()
+    if (!file.exists()) Files.copy(getResourceAsStream(resource), file.toPath())
+    provider.load(file)
+} catch (e: IOException){ e.printStackTrace(); null }
+fun BungeePlugin.save(config: BungeeConfiguration, file: File) = provider.save(config, file)
+
+fun BukkitPlugin.load(
+    file: File,
+    resource: String = file.nameWithoutExtension+"/bukkit.yml"
+): BukkitYamlConfiguration? {
+    if (!file.parentFile.exists()) file.parentFile.mkdir()
+    if (!file.exists()) Files.copy(getResource(resource), file.toPath())
+    return BukkitYamlConfiguration.loadConfiguration(file) ?: null;
+}
+
+// ----------------------------- LISTENER -----------------------------
 inline fun <reified T: BukkitEvent> BukkitPlugin.listen(
     priority: BukkitEventPriority = BukkitEventPriority.NORMAL,
     crossinline callback: (T) -> Unit
@@ -139,6 +178,46 @@ inline fun <reified T: BukkitEvent> BukkitPlugin.listen(
     )
 }
 
+// ----------------------------- COMMANDS -----------------------------
+fun BungeePlugin.command(
+    name: String,
+    permission: String,
+    vararg aliases: String,
+    callback: (BungeeSender, Array<String>) -> Unit
+){
+    proxy.pluginManager.registerCommand(this,
+        object: Command(name, permission, *aliases){
+            override fun execute(sender: CommandSender, args: Array<String>)
+                = callback(sender, args)
+        }
+    )
+}
+
+fun BungeePlugin.command(
+    name: String,
+    callback: (BungeeSender, Array<String>) -> Unit
+){
+    proxy.pluginManager.registerCommand(this,
+        object: BungeeCommand(name){
+            override fun execute(sender: BungeeSender, args: Array<String>)
+                = callback(sender, args)
+        }
+    )
+}
+
+fun BukkitPlugin.command(
+    name: String,
+    callback: (BukkitSender, Array<String>) -> Unit
+){
+    getCommand(name).apply {
+        executor = BukkitCommandExecutor {
+            sender, _, _, args ->
+            true.also{callback(sender, args)}
+        }
+    }
+}
+
+// ----------------------------- SCHEDULER -----------------------------
 fun BukkitPlugin.schedule(
     async: Boolean = false,
     delay: Long? = null,

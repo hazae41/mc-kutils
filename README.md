@@ -82,6 +82,33 @@ listen<PlayerJoinEvent>(HIGHEST){
 }
 ```
 
+### Simplified scheduling
+
+```kotlin
+schedule(delay = 10){
+    // this will be executed after 10 ticks
+}
+
+schedule(delay = 10, period = 20){
+    // this will be executed after 10 ticks then each 20 ticks (1 second)
+}
+
+schedule(async = true){
+    // this will be executed asynchronously now
+}
+
+schedule(true, delay = 20){
+    // this will be executed asynchronously after 20 ticks (1 second)
+}
+
+schedule(true, period = 3, unit = TimeUnit.MINUTES){
+    // this will be executed asynchronously each 3 minutes
+}
+```
+
+Warning: do not use TimeUnit.MILLISECONDS with Bukkit
+Warning: never use TimeUnit.NANOSECONDS and TimeUnit.MICROSECONDS
+
 ### Plugin updates checker
 
 You can check for updates of your plugin using Spiget

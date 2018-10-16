@@ -1,6 +1,8 @@
-# Kotlin4MC : The ultimate Kotlin library for Minecraft plugin development
-
-For Spigot and BungeeCord
+<h3 align=center>
+  <img src="https://i.imgur.com/JHmrNWZ.png"/><br>
+  :potable_water: Spigot & BungeeCord :wavy_dash:
+</h3>
+<br><hr><br>
 
 ### Simplified componentization
 
@@ -106,8 +108,11 @@ schedule(true, period = 3, unit = TimeUnit.MINUTES){
 }
 ```
 
-Warning: do not use TimeUnit.MILLISECONDS with Bukkit
+Warning: the default unit is ticks, even on BungeeCord
+
 Warning: never use TimeUnit.NANOSECONDS and TimeUnit.MICROSECONDS
+
+Warning 2: do not use TimeUnit.MILLISECONDS with Bukkit
 
 ### Plugin updates checker
 
@@ -116,7 +121,7 @@ You can check for updates of your plugin using Spiget
 
 Just use update() with your Spigot resource ID
 ```kotlin
-update(15938, RED)
+update(15938)
 ```
 
 You can specify the color

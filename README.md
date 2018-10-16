@@ -268,7 +268,7 @@ proxy.pluginManager.registerCommand(this,
 )
 
 // Bukkit
-getCommand(name).executor = CommandExecutor {
+getCommand("hello").executor = CommandExecutor {
     sender, command, label, args ->
     sender.sendMessage("§bHello!")
     true;

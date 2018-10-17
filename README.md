@@ -6,6 +6,8 @@
 
 It includes Kotlin stdlib and a lot of tools for Minecraft plugins development.
 
+[Go to Spigot](https://www.spigotmc.org/resources/kotlin4mc-let-kotlin-improve-your-plugins.58015/)
+
 ### Simplified componentization
 
 You can componentize and colorize any message

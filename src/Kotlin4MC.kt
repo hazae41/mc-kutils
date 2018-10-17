@@ -78,6 +78,8 @@ val String.lc get() = toLowerCase()
 fun BungeeSender.msg(msg: String) = msg(text(msg))
 fun BungeeSender.msg(text: TextComponent) = sendMessage(text)
 fun text(string: String) = TextComponent(string.replace("&", "§"))
+fun BukkitSender.msg(text: TextComponent) = spigot().sendMessage(text)
+fun BukkitSender.msg(msg: String) = msg(text(msg))
 
 // ----------------------------- UPDATES CHECKER -----------------------------
 fun spiget(id: Int, callback: (String) -> Unit) = Thread {
@@ -114,13 +116,13 @@ fun BukkitPlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: St
             clickEvent = ClickEvent(OPEN_URL, url)
         }
 
-        server.scheduler.runTaskLater(this, {
-            server.consoleSender.spigot().sendMessage(message);
-        }, 0)
+        schedule{
+            server.consoleSender.msg(message)
+        }
 
         listen<PlayerJoinEvent>{
             if(it.player.hasPermission(permission))
-                it.player.spigot().sendMessage(message)
+                it.player.msg(message)
         }
     }
 
@@ -137,17 +139,14 @@ fun BungeePlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: St
             clickEvent = ClickEvent(OPEN_URL, url)
         }
 
-        proxy.scheduler.schedule(this, {
-            proxy.console.sendMessage(message);
-        }, 0, TimeUnit.SECONDS)
+        schedule{
+            proxy.console.msg(message);
+        }
 
-        proxy.pluginManager.registerListener(this, object : BungeeListener {
-            @BungeeEventHandler
-            fun onJoin(e: PostLoginEvent) {
-                if (e.player.hasPermission(permission))
-                    e.player.sendMessage(message)
-            }
-        })
+        listen<PostLoginEvent>{
+            if(it.player.hasPermission(permission))
+                it.player.msg(message)
+        }
     }
 
 // ----------------------------- CONFIG LOADING -----------------------------
@@ -168,7 +167,7 @@ fun BukkitPlugin.load(
 ): BukkitYamlConfiguration? {
     if (!file.parentFile.exists()) file.parentFile.mkdir()
     if (!file.exists()) Files.copy(getResource(resource), file.toPath())
-    return BukkitYamlConfiguration.loadConfiguration(file) ?: null;
+    return BukkitYamlConfiguration.loadConfiguration(file);
 }
 
 // ----------------------------- LISTENERS -----------------------------

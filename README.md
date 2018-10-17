@@ -4,6 +4,8 @@
 </h3>
 <br><hr><br>
 
+It includes Kotlin stdlib and a lot of tools for Minecraft plugins development.
+
 ### Simplified componentization
 
 You can componentize and colorize any message

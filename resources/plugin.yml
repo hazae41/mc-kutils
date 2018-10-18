@@ -1,4 +1,4 @@
 name: @name@
 version: @version@
-main: fr.rhaz.minecraft.Kotlin4Bukkit
+main: fr.rhaz.minecraft.kotlin.Kotlin4Bukkit
 author: Hazae41

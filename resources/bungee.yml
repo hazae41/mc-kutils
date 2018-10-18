@@ -1,4 +1,4 @@
 name: @name@
 version: @version@
-main: fr.rhaz.minecraft.Kotlin4Bungee
+main: fr.rhaz.minecraft.kotlin.Kotlin4Bungee
 author: Hazae41

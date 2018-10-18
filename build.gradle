@@ -60,12 +60,10 @@ compileKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-Properties props = new Properties();
-props.load(new FileInputStream("properties"))
 publishing {
     repositories {
         maven {
-            url props.getProperty("mavenwrite")
+            url System.getProperties().getProperty("mavenwrite")
         }
     }
 

@@ -1,4 +1,4 @@
-package fr.rhaz.minecraft
+package fr.rhaz.minecraft.kotlin
 
 import com.google.gson.JsonParser
 import net.md_5.bungee.api.ChatColor
@@ -15,10 +15,30 @@ import java.io.InputStreamReader
 import java.lang.reflect.Method
 import java.net.URL
 import java.nio.file.Files
+import java.util.*
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.Lock
 import java.util.function.BiConsumer
 import java.util.function.Consumer
+
+//import net.md_5.bungee.api.plugin.Plugin as BungeePlugin
+//import net.md_5.bungee.api.CommandSender as BungeeSender
+//import net.md_5.bungee.api.plugin.Event as BungeeEvent
+//import net.md_5.bungee.event.EventPriority as BungeeEventPriority
+//import net.md_5.bungee.api.plugin.Listener as BungeeListener
+//import net.md_5.bungee.event.EventHandler as BungeeEventHandler
+//import net.md_5.bungee.config.Configuration as BungeeConfiguration
+//import net.md_5.bungee.config.YamlConfiguration as BungeeYaml
+//import net.md_5.bungee.config.ConfigurationProvider as BungeeConfigurationProvider
+//import net.md_5.bungee.api.plugin.Command as BungeeCommand
+//
+//import org.bukkit.plugin.java.JavaPlugin as BukkitPlugin
+//import org.bukkit.command.CommandSender as BukkitSender
+//import org.bukkit.event.Event as BukkitEvent
+//import org.bukkit.event.Listener as BukkitListener
+//import org.bukkit.event.EventPriority as BukkitEventPriority
+//import org.bukkit.event.EventHandler as BukkitEventHandler
+//import org.bukkit.configuration.file.YamlConfiguration as BukkitYamlConfiguration
+//import org.bukkit.command.CommandExecutor as BukkitCommandExecutor
 
 // ----------------------------- TYPE ALIASES -----------------------------
 typealias BungeePlugin = net.md_5.bungee.api.plugin.Plugin
@@ -41,8 +61,6 @@ typealias BukkitEventHandler = org.bukkit.event.EventHandler
 typealias BukkitYamlConfiguration = org.bukkit.configuration.file.YamlConfiguration
 typealias BukkitCommandExecutor = org.bukkit.command.CommandExecutor
 
-typealias SpongePlugin = org.spongepowered.api.plugin.Plugin
-
 // ----------------------------- LOGGING -----------------------------
 fun BukkitPlugin.info(msg: String) = logger.info(msg)
 fun BukkitPlugin.warning(msg: String) = logger.warning(msg)
@@ -61,14 +79,26 @@ class Kotlin4Bungee: BungeePlugin(){
     override fun onEnable() = update(58015, LIGHT_PURPLE)
 }
 
-@SpongePlugin(id = "kotlin4mc", name = "Kotlin4Sponge")
-class Kotlin4Sponge
-
 // ----------------------------- JAVA COMPAT -----------------------------
 val unit = Unit
 fun <T> listener(callable: Consumer<T>): Function1<T, Unit> = { t -> callable.accept(t); Unit }
 fun <T,U> listener(callable: BiConsumer<T, U>): Function2<T, U, Unit> = { t, u -> callable.accept(t, u); Unit }
 fun <T,U,V> listener(callable: TriConsumer<T, U, V>): Function3<T, U, V, Unit> = { t, u, v -> callable.accept(t, u, v); Unit }
+@FunctionalInterface
+interface TriConsumer<T, U, V> {
+    fun accept(t: T, u: U, v: V)
+
+    fun andThen(after: TriConsumer<in T, in U, in V>): TriConsumer<T, U, V> {
+        Objects.requireNonNull(after)
+        return object: TriConsumer<T, U, V> {
+            override fun accept(a: T, b: U, c: V) {
+                accept(a, b, c)
+                after.accept(a, b, c)
+            }
+        }
+    }
+}
+
 
 // ----------------------------- OTHERS -----------------------------
 operator fun File.get(key: String) = File(this, key)
@@ -105,49 +135,49 @@ infix fun String.newerThan(v: String): Boolean = false.also{
 fun BukkitPlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: String = "rhaz.update")
     = spiget(id) here@{
 
-        if(!(it newerThan description.version)) return@here;
+    if (!(it newerThan description.version)) return@here;
 
-        val url = "https://www.spigotmc.org/resources/$id"
-        val message = text(
+    val url = "https://www.spigotmc.org/resources/$id"
+    val message = text(
             "An update is available for ${description.name}!" +
-            " Download it here: $url"
-        ).apply {
-            this.color = color
-            clickEvent = ClickEvent(OPEN_URL, url)
-        }
-
-        schedule{
-            server.consoleSender.msg(message)
-        }
-
-        listen<PlayerJoinEvent>{
-            if(it.player.hasPermission(permission))
-                it.player.msg(message)
-        }
+                    " Download it here: $url"
+    ).apply {
+        this.color = color
+        clickEvent = ClickEvent(OPEN_URL, url)
     }
+
+    schedule {
+        server.consoleSender.msg(message)
+    }
+
+    listen<PlayerJoinEvent> {
+        if (it.player.hasPermission(permission))
+            it.player.msg(message)
+    }
+}
 
 fun BungeePlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: String = "rhaz.update")
     = spiget(id) here@{
-        if(!(it newerThan description.version)) return@here;
+    if (!(it newerThan description.version)) return@here;
 
-        val url = "https://www.spigotmc.org/resources/$id"
-        val message = text(
+    val url = "https://www.spigotmc.org/resources/$id"
+    val message = text(
             "An update is available for ${description.name}!" +
-            " Download it here: $url"
-        ).apply {
-            this.color = color
-            clickEvent = ClickEvent(OPEN_URL, url)
-        }
-
-        schedule{
-            proxy.console.msg(message);
-        }
-
-        listen<PostLoginEvent>{
-            if(it.player.hasPermission(permission))
-                it.player.msg(message)
-        }
+                    " Download it here: $url"
+    ).apply {
+        this.color = color
+        clickEvent = ClickEvent(OPEN_URL, url)
     }
+
+    schedule {
+        proxy.console.msg(message);
+    }
+
+    listen<PostLoginEvent> {
+        if (it.player.hasPermission(permission))
+            it.player.msg(message)
+    }
+}
 
 // ----------------------------- CONFIG LOADING -----------------------------
 val BungeePlugin.provider get() = BungeeConfigurationProvider.getProvider(BungeeYaml::class.java)
@@ -172,8 +202,8 @@ fun BukkitPlugin.load(
 
 // ----------------------------- LISTENERS -----------------------------
 inline fun <reified T: BukkitEvent> BukkitPlugin.listen(
-    priority: BukkitEventPriority = BukkitEventPriority.NORMAL,
-    crossinline callback: (T) -> Unit
+        priority: BukkitEventPriority = BukkitEventPriority.NORMAL,
+        crossinline callback: (T) -> Unit
 ){
     server.pluginManager.registerEvent(
         T::class.java, object: BukkitListener {},
@@ -183,8 +213,8 @@ inline fun <reified T: BukkitEvent> BukkitPlugin.listen(
 }
 
 inline fun <reified T: BungeeEvent> BungeePlugin.listen(
-    priority: Byte = BungeeEventPriority.NORMAL,
-    crossinline callback: (T) -> Unit
+        priority: Byte = BungeeEventPriority.NORMAL,
+        crossinline callback: (T) -> Unit
 ){
     val pm = proxy.pluginManager
     val pmc = pm::class.java
@@ -192,9 +222,6 @@ inline fun <reified T: BungeeEvent> BungeePlugin.listen(
         isAccessible = true; get(pm) as EventBus
     }
     val busc = bus::class.java
-    val lock = busc.getDeclaredField("lock").run {
-        isAccessible = true; get(bus) as Lock
-    }
     val bLaP = busc.getDeclaredField("byListenerAndPriority").run {
         isAccessible = true; get(bus) as HashMap<Class<*>, Map<Byte, Map<Object, Array<Method>>>>
     }
@@ -204,7 +231,7 @@ inline fun <reified T: BungeeEvent> BungeePlugin.listen(
     val handlers = priorities[priority] as? HashMap<Object, Array<Method>>
             ?: HashMap<Object, Array<Method>>()
                     .also { priorities[priority] = it }
-    val listener = object: BungeeListener{
+    val listener = object: BungeeListener {
         fun onEvent(it: T) = callback(it)
     }
     handlers[listener as Object] = arrayOf(listener::class.java.getMethod("onEvent", BungeeEvent::class.java))

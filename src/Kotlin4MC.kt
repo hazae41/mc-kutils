@@ -1,10 +1,12 @@
+@file:JvmName("Kotlin4MC")
+
 package fr.rhaz.minecraft.kotlin
 
 import com.google.gson.JsonParser
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.ChatColor.LIGHT_PURPLE
 import net.md_5.bungee.api.chat.ClickEvent
-import net.md_5.bungee.api.chat.ClickEvent.Action.OPEN_URL
+import net.md_5.bungee.api.chat.ClickEvent.Action.*
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.event.PostLoginEvent
 import net.md_5.bungee.event.EventBus
@@ -62,13 +64,13 @@ typealias BukkitYamlConfiguration = org.bukkit.configuration.file.YamlConfigurat
 typealias BukkitCommandExecutor = org.bukkit.command.CommandExecutor
 
 // ----------------------------- LOGGING -----------------------------
-fun BukkitPlugin.info(msg: String) = logger.info(msg)
-fun BukkitPlugin.warning(msg: String) = logger.warning(msg)
-fun BukkitPlugin.severe(msg: String) = logger.severe(msg)
+fun BukkitPlugin.info(msg: String) = logger.info(msg.replace("&", "§"))
+fun BukkitPlugin.warning(msg: String) = logger.warning(msg.replace("&", "§"))
+fun BukkitPlugin.severe(msg: String) = logger.severe(msg.replace("&", "§"))
 
-fun BungeePlugin.info(msg: String) = logger.info(msg)
-fun BungeePlugin.warning(msg: String) = logger.warning(msg)
-fun BungeePlugin.severe(msg: String) = logger.severe(msg)
+fun BungeePlugin.info(msg: String) = logger.info(msg.replace("&", "§"))
+fun BungeePlugin.warning(msg: String) = logger.warning(msg.replace("&", "§"))
+fun BungeePlugin.severe(msg: String) = logger.severe(msg.replace("&", "§"))
 
 // ----------------------------- KOTLIN4MC PLUGIN -----------------------------
 
@@ -103,6 +105,9 @@ interface TriConsumer<T, U, V> {
 // ----------------------------- OTHERS -----------------------------
 operator fun File.get(key: String) = File(this, key)
 val String.lc get() = toLowerCase()
+fun <T> T.eq(other: T) = takeIf{it == other}
+fun <T> T.not(other: T) = takeUnless{it == other}
+val Any.unit get() = Unit
 
 // ----------------------------- MESSAGING -----------------------------
 fun BungeeSender.msg(msg: String) = msg(text(msg))
@@ -133,7 +138,7 @@ infix fun String.newerThan(v: String): Boolean = false.also{
 }
 
 fun BukkitPlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: String = "rhaz.update")
-    = spiget(id) here@{
+        = spiget(id) here@{
 
     if (!(it newerThan description.version)) return@here;
 
@@ -143,7 +148,7 @@ fun BukkitPlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: St
                     " Download it here: $url"
     ).apply {
         this.color = color
-        clickEvent = ClickEvent(OPEN_URL, url)
+        clickEvent = net.md_5.bungee.api.chat.ClickEvent(OPEN_URL, url)
     }
 
     schedule {
@@ -157,7 +162,7 @@ fun BukkitPlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: St
 }
 
 fun BungeePlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: String = "rhaz.update")
-    = spiget(id) here@{
+        = spiget(id) here@{
     if (!(it newerThan description.version)) return@here;
 
     val url = "https://www.spigotmc.org/resources/$id"
@@ -182,8 +187,8 @@ fun BungeePlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: St
 // ----------------------------- CONFIG LOADING -----------------------------
 val BungeePlugin.provider get() = BungeeConfigurationProvider.getProvider(BungeeYaml::class.java)
 fun BungeePlugin.load(
-    file: File,
-    resource: String = file.nameWithoutExtension+"/bungee.yml"
+        file: File,
+        resource: String = file.nameWithoutExtension+"/bungee.yml"
 ) = try {
     if (!dataFolder.exists()) dataFolder.mkdir()
     if (!file.exists()) Files.copy(getResourceAsStream(resource), file.toPath())
@@ -192,11 +197,11 @@ fun BungeePlugin.load(
 fun BungeePlugin.save(config: BungeeConfiguration, file: File) = provider.save(config, file)
 
 fun BukkitPlugin.load(
-    file: File,
-    resource: String = file.nameWithoutExtension+"/bukkit.yml"
+        file: File,
+        resource: String = file.nameWithoutExtension+"/bukkit.yml"
 ): BukkitYamlConfiguration? {
     if (!file.parentFile.exists()) file.parentFile.mkdir()
-    if (!file.exists()) Files.copy(getResource(resource), file.toPath())
+    if (!file.exists()) java.nio.file.Files.copy(getResource(resource), file.toPath())
     return BukkitYamlConfiguration.loadConfiguration(file);
 }
 
@@ -206,9 +211,9 @@ inline fun <reified T: BukkitEvent> BukkitPlugin.listen(
         crossinline callback: (T) -> Unit
 ){
     server.pluginManager.registerEvent(
-        T::class.java, object: BukkitListener {},
-        priority, { _, it -> callback(it as T) },
-        this
+            T::class.java, object: BukkitListener {},
+            priority, { _, it -> callback(it as T) },
+            this
     )
 }
 
@@ -243,34 +248,34 @@ inline fun <reified T: BungeeEvent> BungeePlugin.listen(
 
 // ----------------------------- COMMANDS -----------------------------
 fun BungeePlugin.command(
-    name: String,
-    permission: String,
-    vararg aliases: String,
-    callback: (BungeeSender, Array<String>) -> Unit
+        name: String,
+        permission: String,
+        vararg aliases: String,
+        callback: (BungeeSender, Array<String>) -> Unit
 ){
     proxy.pluginManager.registerCommand(this,
-        object: BungeeCommand(name, permission, *aliases){
-            override fun execute(sender: BungeeSender, args: Array<String>)
-                = callback(sender, args)
-        }
+            object: BungeeCommand(name, permission, *aliases){
+                override fun execute(sender: BungeeSender, args: Array<String>)
+                        = callback(sender, args)
+            }
     )
 }
 
 fun BungeePlugin.command(
-    name: String,
-    callback: (BungeeSender, Array<String>) -> Unit
+        name: String,
+        callback: (BungeeSender, Array<String>) -> Unit
 ){
     proxy.pluginManager.registerCommand(this,
-        object: BungeeCommand(name){
-            override fun execute(sender: BungeeSender, args: Array<String>)
-                = callback(sender, args)
-        }
+            object: BungeeCommand(name){
+                override fun execute(sender: BungeeSender, args: Array<String>)
+                        = callback(sender, args)
+            }
     )
 }
 
 fun BukkitPlugin.command(
-    name: String,
-    callback: (BukkitSender, Array<String>) -> Unit
+        name: String,
+        callback: (BukkitSender, Array<String>) -> Unit
 ){
     getCommand(name).apply {
         executor = BukkitCommandExecutor {
@@ -282,11 +287,11 @@ fun BukkitPlugin.command(
 
 // ----------------------------- SCHEDULER -----------------------------
 fun BukkitPlugin.schedule(
-    async: Boolean = false,
-    delay: Long? = null,
-    period: Long? = null,
-    unit: TimeUnit? = null,
-    callback: () -> Unit
+        async: Boolean = false,
+        delay: Long? = null,
+        period: Long? = null,
+        unit: TimeUnit? = null,
+        callback: () -> Unit
 ){
     if(period != null){
         var delay = delay ?: 0
@@ -308,11 +313,11 @@ fun BukkitPlugin.schedule(
 }
 
 fun BungeePlugin.schedule(
-    async: Boolean = false,
-    delay: Long? = null,
-    period: Long? = null,
-    unit: TimeUnit? = null,
-    callback: () -> Unit
+        async: Boolean = false,
+        delay: Long? = null,
+        period: Long? = null,
+        unit: TimeUnit? = null,
+        callback: () -> Unit
 ){
     if(period != null){
         var delay = delay ?: 0

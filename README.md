@@ -245,7 +245,7 @@ logger.info("Hello world!")
 
 ##### In Java
 ```java
-getLogger().info("Hello world!")
+getLogger().info("Hello world!");
 ```
 
 ### Simplified commands
@@ -273,7 +273,7 @@ proxy.pluginManager.registerCommand(this,
 getCommand("hello").executor = CommandExecutor {
     sender, command, label, args ->
     sender.sendMessage("§bHello!")
-    true;
+    true
 }
 ```
 
@@ -297,6 +297,55 @@ and the permission (the default permission is "rhaz.update")
 update(15938, LIGHT_PURPLE, "myplugin.updates")
 ```
 
+### Short equality checks
+
+You can use .neq() and .eq() to check inequality/equality of any object
+
+"object.neq(other)":
+- returns null if object == other
+- returns object if object != other
+
+"object.eq(other)":
+- returns null if object != other
+- returns object if object == other
+
+##### With Kotlin4MC
+```kotlin
+val delay = config.getLong("delay").neq(0) // Assignment + Check
+    ?: return warning("Delay should not be 0")
+```
+
+##### Without Kotlin4MC
+```kotlin
+val delay = config.getLong("delay")  // Assignment
+if(delay == 0) return warning("Delay should not be 0") // Check
+```
+
+### Short Unit conversion
+
+You can use .unit after anything to convert it to Unit
+
+```kotlin
+interface Tester{
+    fun test(): Unit
+}
+
+fun task(arg: Argument): Result // ...
+
+class myClass: Tester{
+    // throws error
+    override fun test(): Unit = task()
+
+    // too verbose
+    override fun test(): Unit {
+        task()
+    }
+    
+    // correct
+    override fun test(): Unit = task().unit
+}
+```
+
 ### How to implement it?
 
 - Gradle: add this to your build.gradle
@@ -306,7 +355,7 @@ update(15938, LIGHT_PURPLE, "myplugin.updates")
       }
 
       dependencies {
-          compileOnly 'fr.rhaz.minecraft:kotlin4mc:2.0'
+          compileOnly 'fr.rhaz.minecraft:kotlin4mc:2.0.1'
       }
 
 
@@ -323,7 +372,7 @@ update(15938, LIGHT_PURPLE, "myplugin.updates")
         <dependency>
             <groupId>fr.rhaz.minecraft</groupId>
             <artifactId>kotlin4mc</artifactId>
-            <version>2.0</version>
+            <version>2.0.1</version>
             <scope>provided</scope>
         </dependency>
       </dependencies>

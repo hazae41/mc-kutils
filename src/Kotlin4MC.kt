@@ -10,6 +10,7 @@ import net.md_5.bungee.api.chat.ClickEvent.Action.*
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.event.PostLoginEvent
 import net.md_5.bungee.event.EventBus
+import org.bukkit.command.defaults.BukkitCommand
 import org.bukkit.event.player.PlayerJoinEvent
 import java.io.File
 import java.io.IOException
@@ -247,51 +248,69 @@ inline fun <reified T: BungeeEvent> BungeePlugin.listen(
 }
 
 // ----------------------------- COMMANDS -----------------------------
+
+// -------------- BUNGEE --------------
+
+// --- COMMAND AS RECEIVER ---
 fun BungeePlugin.command(
-        name: String,
-        permission: String,
-        vararg aliases: String,
-        callback: (BungeeSender, Array<String>) -> Unit
-){
-    proxy.pluginManager.registerCommand(this,
-            object: BungeeCommand(name, permission, *aliases){
-                override fun execute(sender: BungeeSender, args: Array<String>)
-                        = callback(sender, args)
-            }
-    )
-}
+    name: String,
+    permission: String,
+    vararg aliases: String,
+    callback: BungeeCommand.(BungeeSender, Array<String>) -> Unit
+) = object: BungeeCommand(name, permission, *aliases){
+    override fun execute(sender: BungeeSender, args: Array<String>)
+        = callback(sender, args)
+}.also{ proxy.pluginManager.registerCommand(this, it) }
 
 fun BungeePlugin.command(
-        name: String,
-        callback: (BungeeSender, Array<String>) -> Unit
-){
-    proxy.pluginManager.registerCommand(this,
-            object: BungeeCommand(name){
-                override fun execute(sender: BungeeSender, args: Array<String>)
-                        = callback(sender, args)
-            }
-    )
-}
+    name: String,
+    callback: BungeeCommand.(BungeeSender, Array<String>) -> Unit
+) = object: BungeeCommand(name){
+    override fun execute(sender: BungeeSender, args: Array<String>)
+        = callback(sender, args)
+}.also{ proxy.pluginManager.registerCommand(this, it) }
 
+// --- SENDER AS RECEIVER ---
+fun BungeePlugin.command(
+    name: String,
+    permission: String,
+    vararg aliases: String,
+    callback: BungeeSender.(Array<String>) -> Unit
+) = command(name, permission, *aliases){sender, args -> sender.callback(args)}
+
+fun BungeePlugin.command(
+    name: String,
+    callback: BungeeSender.(Array<String>) -> Unit
+) = command(name){ sender, args -> sender.callback(args) }
+
+// -------------- BUKKIT --------------
+
+// --- COMMAND AS RECEIVER ---
 fun BukkitPlugin.command(
-        name: String,
-        callback: (BukkitSender, Array<String>) -> Unit
-){
-    getCommand(name).apply {
-        executor = BukkitCommandExecutor {
-            sender, _, _, args ->
-            true.also{callback(sender, args)}
-        }
+    name: String, permission: String? = null, vararg aliases: String,
+    executor: BukkitCommandExecutor.(BukkitSender, Array<String>) -> Unit
+) = getCommand(name).also {
+    it.aliases = aliases.toList()
+    it.executor = BukkitCommandExecutor {
+        sender, _, _, args -> executor(sender, args)
+        true
     }
+    it.permission = permission ?: return@also
 }
+
+// --- SENDER AS RECEIVER ---
+fun BukkitPlugin.command(
+    name: String, permission: String? = null, vararg aliases: String,
+    executor: BukkitSender.(Array<String>) -> Unit
+) = command(name, permission, *aliases){ sender, args -> sender.executor(args)}
 
 // ----------------------------- SCHEDULER -----------------------------
 fun BukkitPlugin.schedule(
-        async: Boolean = false,
-        delay: Long? = null,
-        period: Long? = null,
-        unit: TimeUnit? = null,
-        callback: () -> Unit
+    async: Boolean = false,
+    delay: Long? = null,
+    period: Long? = null,
+    unit: TimeUnit? = null,
+    callback: () -> Unit
 ){
     if(period != null){
         var delay = delay ?: 0

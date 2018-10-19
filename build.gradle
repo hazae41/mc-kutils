@@ -1,9 +1,6 @@
 buildscript {
     ext.kotlin_version = '1.2.71'
 
-    ext.pluginname = 'Kotlin4MC'
-    ext.plugindesc = 'Kotlin for Minecraft'
-
     repositories {
         mavenCentral()
     }
@@ -16,8 +13,9 @@ apply plugin: 'kotlin'
 apply plugin: 'maven-publish'
 
 group 'fr.rhaz.minecraft'
-version '2.0.1'
+version '2.0.2'
 def pname = "Kotlin4MC"
+def desc = "Kotlin for Minecraft"
 
 repositories {
     mavenCentral()
@@ -52,7 +50,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 processResources {
     with copySpec {
         from 'resources'
-        filter(ReplaceTokens, tokens: ['id':rootProject.name, 'name':pluginname, 'version':version, 'desc':plugindesc])
+        filter(ReplaceTokens, tokens: ['id':rootProject.name, 'name':pname, 'version':version, 'desc':desc])
     }
 }
 

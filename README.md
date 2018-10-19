@@ -252,9 +252,16 @@ getLogger().info("Hello world!");
 
 ##### With Kotlin4MC
 ```kotlin
-command("hello"){
-    sender, args ->
-    sender.msg("&bHello!")
+// Example on Bukkit
+command("hello"){ sender, args ->
+    if(args.isEmpty())
+        sender.msg("&cWrong arguments, usage: $usage")
+    else sender.msg("&bHello!")
+}
+
+// You can apply the executor directly to the sender
+command("test") { 
+    args -> msg("&bYou said $args") 
 }
 ```
 
@@ -299,9 +306,9 @@ update(15938, LIGHT_PURPLE, "myplugin.updates")
 
 ### Short equality checks
 
-You can use .neq() and .eq() to check inequality/equality of any object
+You can use .not() and .eq() to check inequality/equality of any object
 
-"object.neq(other)":
+"object.not(other)":
 - returns null if object == other
 - returns object if object != other
 

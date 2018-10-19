@@ -9,9 +9,12 @@ import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.ClickEvent.Action.*
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.event.PostLoginEvent
+import net.md_5.bungee.api.scheduler.ScheduledTask
 import net.md_5.bungee.event.EventBus
+import org.bukkit.command.PluginCommand
 import org.bukkit.command.defaults.BukkitCommand
 import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.scheduler.BukkitTask
 import java.io.File
 import java.io.IOException
 import java.io.InputStreamReader
@@ -54,8 +57,10 @@ typealias BungeeConfiguration = net.md_5.bungee.config.Configuration
 typealias BungeeYaml = net.md_5.bungee.config.YamlConfiguration
 typealias BungeeConfigurationProvider = net.md_5.bungee.config.ConfigurationProvider
 typealias BungeeCommand = net.md_5.bungee.api.plugin.Command
+typealias BungeeTask = net.md_5.bungee.api.scheduler.ScheduledTask
 
 typealias BukkitPlugin = org.bukkit.plugin.java.JavaPlugin
+typealias BukkitPluginCommand = org.bukkit.command.PluginCommand
 typealias BukkitSender = org.bukkit.command.CommandSender
 typealias BukkitEvent = org.bukkit.event.Event
 typealias BukkitListener = org.bukkit.event.Listener
@@ -138,6 +143,7 @@ infix fun String.newerThan(v: String): Boolean = false.also{
     }
 }
 
+// --- BUKKIT ---
 fun BukkitPlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: String = "rhaz.update")
         = spiget(id) here@{
 
@@ -162,6 +168,7 @@ fun BukkitPlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: St
     }
 }
 
+// --- BUNGEE ----
 fun BungeePlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: String = "rhaz.update")
         = spiget(id) here@{
     if (!(it newerThan description.version)) return@here;
@@ -186,6 +193,8 @@ fun BungeePlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: St
 }
 
 // ----------------------------- CONFIG LOADING -----------------------------
+
+// --- BUNGEE ---
 val BungeePlugin.provider get() = BungeeConfigurationProvider.getProvider(BungeeYaml::class.java)
 fun BungeePlugin.load(
         file: File,
@@ -197,6 +206,7 @@ fun BungeePlugin.load(
 } catch (e: IOException){ e.printStackTrace(); null }
 fun BungeePlugin.save(config: BungeeConfiguration, file: File) = provider.save(config, file)
 
+// --- BUKKIT ---
 fun BukkitPlugin.load(
         file: File,
         resource: String = file.nameWithoutExtension+"/bukkit.yml"
@@ -288,11 +298,11 @@ fun BungeePlugin.command(
 // --- COMMAND AS RECEIVER ---
 fun BukkitPlugin.command(
     name: String, permission: String? = null, vararg aliases: String,
-    executor: BukkitCommandExecutor.(BukkitSender, Array<String>) -> Unit
+    executor: BukkitPluginCommand.(BukkitSender, Array<String>) -> Unit
 ) = getCommand(name).also {
     it.aliases = aliases.toList()
     it.executor = BukkitCommandExecutor {
-        sender, _, _, args -> executor(sender, args)
+        sender, _, _, args -> it.executor(sender, args)
         true
     }
     it.permission = permission ?: return@also
@@ -305,59 +315,59 @@ fun BukkitPlugin.command(
 ) = command(name, permission, *aliases){ sender, args -> sender.executor(args)}
 
 // ----------------------------- SCHEDULER -----------------------------
+
+// --- BUKKIT ---
 fun BukkitPlugin.schedule(
     async: Boolean = false,
     delay: Long? = null,
     period: Long? = null,
     unit: TimeUnit? = null,
     callback: () -> Unit
-){
+): BukkitTask {
     if(period != null){
         var delay = delay ?: 0
         delay = unit?.toSeconds(delay)?.let{it*20} ?: delay
         val period = unit?.toSeconds(period)?.let{it*20} ?: period
-
-        if(async) server.scheduler.runTaskTimerAsynchronously(this, callback, delay, period)
+        return if(async) server.scheduler.runTaskTimerAsynchronously(this, callback, delay, period)
         else server.scheduler.runTaskTimer(this, callback, delay, period)
-        return;
     }
     if(delay != null){
         val delay = unit?.toSeconds(delay)?.let{it*20} ?: delay
-        if(async) server.scheduler.runTaskLaterAsynchronously(this, callback, delay)
+        return if(async) server.scheduler.runTaskLaterAsynchronously(this, callback, delay)
         else server.scheduler.runTaskLater(this, callback, delay)
-        return;
     }
-    if(async) server.scheduler.runTaskAsynchronously(this, callback)
+    return if(async) server.scheduler.runTaskAsynchronously(this, callback)
     else server.scheduler.runTask(this, callback)
 }
+fun BukkitPlugin.cancelTasks() = server.scheduler.cancelTasks(this)
 
+// --- BUNGEE ---
 fun BungeePlugin.schedule(
         async: Boolean = false,
         delay: Long? = null,
         period: Long? = null,
         unit: TimeUnit? = null,
         callback: () -> Unit
-){
+): BungeeTask {
     if(period != null){
         var delay = delay ?: 0
         val unit = unit ?: TimeUnit.MILLISECONDS.also{ delay *= 50 }
-        if(async)
+        return if(async)
             proxy.scheduler.schedule(this, {
                 proxy.scheduler.runAsync(this, callback)
             }, delay, period, unit)
         else proxy.scheduler.schedule(this, callback, delay, period, unit)
-        return;
     }
     if(delay != null){
         var delay = delay
         val unit = unit ?: TimeUnit.MILLISECONDS.also{ delay *= 50 }
-        if(async)
+        return if(async)
             proxy.scheduler.schedule(this, {
                 proxy.scheduler.runAsync(this, callback)
             }, delay, unit)
         else proxy.scheduler.schedule(this, callback, delay, unit)
-        return;
     }
-    if(async) proxy.scheduler.runAsync(this, callback)
+    return if(async) proxy.scheduler.runAsync(this, callback)
     else proxy.scheduler.schedule(this, callback, 0, TimeUnit.MILLISECONDS)
 }
+fun BungeePlugin.cancelTasks() = proxy.scheduler.cancel(this)

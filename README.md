@@ -264,7 +264,7 @@ update(15938, LIGHT_PURPLE, "myplugin.updates")
 
 ### Advanced exception catching
 
-Exceptions can be catched with a beautiful 
+Exceptions can be catched with a beautiful syntax
 
 ##### With Kotlin4MC
 ```kotlin
@@ -286,6 +286,7 @@ try{
 
 ##### Catch only specific exceptions
 ```kotlin
+// The callback can be ommited, the default one is ::printStackTrace
 catch<CommandException>{
     throw Exception("This won't be catched")
 }

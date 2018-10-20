@@ -165,48 +165,6 @@ You can use .lc after any String to get its lower case version
 "HeLLo WorLd".toLowerCase() // Ugly
 ```
 
-### Java compat optimization
-
-Java developers that use your Kotlinized plugins can easily access the Unit type by using getUnit() in any context
-and they can access lambda functions of Kotlin with listener()
-
-Let's say you have this method in your API
-
-```kotlin
-fun performTask(callback: (String) -> Unit) =
-    Thread {
-        // long task
-        val result: String = ...
-        callback(result)
-    }
-```
-
-And Java developers need to use it
-
-##### With Kotlin4MC: the developer does not need Kotlin stdlib to access Unit
-```java
-// Java using getUnit()
-performTask((result) -> {
-    player.msg(result);
-    return getUnit();
-})
-
-// Java using listener()
-performTask(
-    listener((result) -> player.msg(result))
-)
-// Listener converts a Java consumer into a Kotlin function
-```
-
-##### Without Kotlin4MC: the developer needs Kotlin stdlib to access Unit
-```java
-// Java using Unit.INSTANCE
-performTask((result) -> {
-    player.msg(result);
-    return Unit.INSTANCE;
-})
-```
-
 ### Simple configuration loading
 
 Load the config from the data folder, otherwise, copy it from the resource "config.yml".
@@ -304,6 +262,122 @@ and the permission (the default permission is "rhaz.update")
 update(15938, LIGHT_PURPLE, "myplugin.updates")
 ```
 
+### Advanced exception catching
+
+Exceptions can be catched with a beautiful 
+
+##### With Kotlin4MC
+```kotlin
+// This will catch any exception and log it as a warning
+catch<Exception>(::warning){
+    // ex() is a short replacement of Exception()
+    throw ex("An error occured")
+}
+```
+
+##### Without Kotlin4MC
+```kotlin
+try{
+    throw Exception("An error occured")
+} catch(ex: Exception){
+    warning(ex)
+}
+```
+
+##### Catch only specific exceptions
+```kotlin
+catch<CommandException>{
+    throw Exception("This won't be catched")
+}
+```
+
+##### Catch and redirect to the sender
+```kotlin
+val sender: CommandSender = ...
+catch<Exception>(sender::msg){
+    if(sender !is Player)
+        throw ex("&cYou're not a player!")
+    sender.gamemode = GameMode.CREATIVE
+    sender.msg("&bYou're now in creative mode :)")
+}
+```
+
+##### Custom callbacks
+```kotlin
+// Tell the admins about the exception
+val admins = server.onlinePlayers.filter{it.hasPermission("test.admin")}
+fun tellToAdmins(ex: Exception) = admins.forEach{it.msg(ex)}
+
+catch<Exception>(::tellToAdmins){
+    throw ex("Alert!")
+}
+
+// Use a fixed callback
+catch<Exception>({ warning("I won't tell you what it is") }){
+    throw ex("I am an Exception")
+}
+
+// Use a relative callback
+catch<Exception>({ warning("An error occured: ${it.message}")}){
+    throw ex(...)
+}
+```
+
+##### Custom exceptions
+```kotlin
+class RedException(message: String): Exception(){
+    override val message = "&c$message"
+}
+
+fun test(){
+    catch<RedException>(::warning){
+        throw RedException("This message will be red")
+    }    
+}
+```
+
+### Java compat optimization
+
+Java developers that use your Kotlinized plugins can easily access the Unit type by using getUnit() in any context
+and they can access lambda functions of Kotlin with listener()
+
+Let's say you have this method in your API
+
+```kotlin
+fun performTask(callback: (String) -> Unit) =
+    Thread {
+        // long task
+        val result: String = ...
+        callback(result)
+    }
+```
+
+And Java developers need to use it
+
+##### With Kotlin4MC: the developer does not need Kotlin stdlib to access Unit
+```java
+// Java using getUnit()
+performTask((result) -> {
+    player.msg(result);
+    return getUnit();
+})
+
+// Java using listener()
+performTask(
+    listener((result) -> player.msg(result))
+)
+// Listener converts a Java consumer into a Kotlin function
+```
+
+##### Without Kotlin4MC: the developer needs Kotlin stdlib to access Unit
+```java
+// Java using Unit.INSTANCE
+performTask((result) -> {
+    player.msg(result);
+    return Unit.INSTANCE;
+})
+```
+
 ### Short equality checks
 
 You can use .not() and .eq() to check inequality/equality of any object
@@ -351,6 +425,18 @@ class myClass: Tester{
     // correct
     override fun test(): Unit = task().unit
 }
+```
+
+### Short null conversion
+
+You can use .nul after any object to convert it to null
+
+```kotlin
+fun complex(arg: Argument?): Result? { 
+    arg ?: return warning("Arg must not be null").nul
+    // val result = ...
+    return result
+ }
 ```
 
 ### How to implement it?

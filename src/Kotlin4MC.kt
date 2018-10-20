@@ -71,12 +71,18 @@ typealias BukkitCommandExecutor = org.bukkit.command.CommandExecutor
 
 // ----------------------------- LOGGING -----------------------------
 fun BukkitPlugin.info(msg: String) = logger.info(msg.replace("&", "§"))
+fun BukkitPlugin.info(ex: Exception) { ex.message?.also(::info) }
 fun BukkitPlugin.warning(msg: String) = logger.warning(msg.replace("&", "§"))
+fun BukkitPlugin.warning(ex: Exception) { ex.message?.also(::warning) }
 fun BukkitPlugin.severe(msg: String) = logger.severe(msg.replace("&", "§"))
+fun BukkitPlugin.severe(ex: Exception) { ex.message?.also(::info) }
 
 fun BungeePlugin.info(msg: String) = logger.info(msg.replace("&", "§"))
+fun BungeePlugin.info(ex: Exception) { ex.message?.also(::info) }
 fun BungeePlugin.warning(msg: String) = logger.warning(msg.replace("&", "§"))
+fun BungeePlugin.warning(ex: Exception) { ex.message?.also(::warning) }
 fun BungeePlugin.severe(msg: String) = logger.severe(msg.replace("&", "§"))
+fun BungeePlugin.severe(ex: Exception) { ex.message?.also(::severe) }
 
 // ----------------------------- KOTLIN4MC PLUGIN -----------------------------
 
@@ -111,16 +117,35 @@ interface TriConsumer<T, U, V> {
 // ----------------------------- OTHERS -----------------------------
 operator fun File.get(key: String) = File(this, key)
 val String.lc get() = toLowerCase()
+val String.ex get() = Exception(this)
+
 fun <T> T.eq(other: T) = takeIf{it == other}
 fun <T> T.not(other: T) = takeUnless{it == other}
+
 val Any.unit get() = Unit
+val Any.nul get() = null
+
+fun ex(msg: String) = Exception(msg)
+
+inline fun <reified T: Exception> catch(
+    err: (T) -> Unit = {it.printStackTrace()},
+    run: () -> Unit
+) {
+    try{run()} catch(ex: Exception){
+        if(ex is T) err(ex) else throw ex
+    }
+}
 
 // ----------------------------- MESSAGING -----------------------------
+fun text(string: String) = TextComponent(string.replace("&", "§"))
+
 fun BungeeSender.msg(msg: String) = msg(text(msg))
 fun BungeeSender.msg(text: TextComponent) = sendMessage(text)
-fun text(string: String) = TextComponent(string.replace("&", "§"))
+fun BungeeSender.msg(ex: Exception) { ex.message?.also(::msg) }
+
 fun BukkitSender.msg(text: TextComponent) = spigot().sendMessage(text)
 fun BukkitSender.msg(msg: String) = msg(text(msg))
+fun BukkitSender.msg(ex: Exception) { ex.message?.also(::msg) }
 
 // ----------------------------- UPDATES CHECKER -----------------------------
 fun spiget(id: Int, callback: (String) -> Unit) = Thread {
@@ -206,6 +231,8 @@ fun BungeePlugin.load(
 } catch (e: IOException){ e.printStackTrace(); null }
 fun BungeePlugin.save(config: BungeeConfiguration, file: File) = provider.save(config, file)
 
+operator fun BungeeConfiguration.get(path: String) = getSection(path)
+
 // --- BUKKIT ---
 fun BukkitPlugin.load(
         file: File,
@@ -215,6 +242,8 @@ fun BukkitPlugin.load(
     if (!file.exists()) java.nio.file.Files.copy(getResource(resource), file.toPath())
     return BukkitYamlConfiguration.loadConfiguration(file);
 }
+
+operator fun BukkitYamlConfiguration.get(path: String) = getConfigurationSection(path)
 
 // ----------------------------- LISTENERS -----------------------------
 inline fun <reified T: BukkitEvent> BukkitPlugin.listen(

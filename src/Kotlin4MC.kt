@@ -127,13 +127,23 @@ val Any.nul get() = null
 
 fun ex(msg: String) = Exception(msg)
 
+inline fun <reified T: Exception, reified U: Any> catch(
+    err: (T) -> U,
+    run: () -> U
+): U = try{run()} catch(ex: Exception){
+        if(ex is T) err(ex) else throw ex
+    }
+
 inline fun <reified T: Exception> catch(
     err: (T) -> Unit = {it.printStackTrace()},
     run: () -> Unit
-) {
-    try{run()} catch(ex: Exception){
-        if(ex is T) err(ex) else throw ex
-    }
+): Unit = catch<T, Unit>(err, run)
+
+inline fun <reified T: Exception, reified U: Any> catch(
+    default: U,
+    run: () -> U
+): U = try{run()} catch(ex: Exception){
+    if(ex is T) default else throw ex
 }
 
 // ----------------------------- MESSAGING -----------------------------

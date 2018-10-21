@@ -313,12 +313,8 @@ catch<Exception>(::tellToAdmins){
     throw ex("Alert!")
 }
 
-// Use a fixed callback
-catch<Exception>({ warning("I won't tell you what it is") }){
-    throw ex("I am an Exception")
-}
 
-// Use a relative callback
+// Anonymous callback that prepend the warning with "An error occured"
 catch<Exception>({ warning("An error occured: ${it.message}")}){
     throw ex(...)
 }
@@ -335,6 +331,25 @@ fun test(){
         throw RedException("This message will be red")
     }    
 }
+```
+
+##### Catching with result, callback and default value
+```kotlin
+fun default(ex: Exception) =
+    {warning(ex); "This is the default message"}()
+
+val msg = catch(::default){
+    val line1 = read() ?: throw ex("Could not read first line")
+    val line2 = read() ?: throw ex("Could not read second line")
+    val line3 = read() ?: throw ex("Could not read third line")
+    info("Sucessfully read three lines")
+    "$line1, $line2, $line3"
+    // Return the three lines separated by "," 
+}
+
+// Will print "This is the default message"
+// if one of the three lines could not be read
+info("The message is: $msg")
 ```
 
 ### Java compat optimization

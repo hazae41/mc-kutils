@@ -408,7 +408,7 @@ You can use .not() and .eq() to check inequality/equality of any object
 
 ##### With Kotlin4MC
 ```kotlin
-val delay = config.getLong("delay").neq(0) // Assignment + Check
+val delay = config.getLong("delay").not(0) // Assignment + Check
     ?: return warning("Delay should not be 0")
 ```
 

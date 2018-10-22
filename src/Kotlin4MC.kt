@@ -11,20 +11,22 @@ import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.event.PostLoginEvent
 import net.md_5.bungee.api.scheduler.ScheduledTask
 import net.md_5.bungee.event.EventBus
+import org.bukkit.Bukkit
 import org.bukkit.command.PluginCommand
 import org.bukkit.command.defaults.BukkitCommand
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.scheduler.BukkitTask
-import java.io.File
-import java.io.IOException
-import java.io.InputStreamReader
+import java.io.*
 import java.lang.reflect.Method
 import java.net.URL
 import java.nio.file.Files
+import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.function.BiConsumer
 import java.util.function.Consumer
+import kotlin.collections.ArrayList
+import kotlin.collections.HashSet
 
 //import net.md_5.bungee.api.plugin.Plugin as BungeePlugin
 //import net.md_5.bungee.api.CommandSender as BungeeSender
@@ -68,6 +70,7 @@ typealias BukkitEventPriority = org.bukkit.event.EventPriority
 typealias BukkitEventHandler = org.bukkit.event.EventHandler
 typealias BukkitYamlConfiguration = org.bukkit.configuration.file.YamlConfiguration
 typealias BukkitCommandExecutor = org.bukkit.command.CommandExecutor
+typealias BukkitConfigurationSection = org.bukkit.configuration.ConfigurationSection
 
 // ----------------------------- LOGGING -----------------------------
 fun BukkitPlugin.info(msg: String) = logger.info(msg.replace("&", "§"))
@@ -76,6 +79,13 @@ fun BukkitPlugin.warning(msg: String) = logger.warning(msg.replace("&", "§"))
 fun BukkitPlugin.warning(ex: Exception) { ex.message?.also(::warning) }
 fun BukkitPlugin.severe(msg: String) = logger.severe(msg.replace("&", "§"))
 fun BukkitPlugin.severe(ex: Exception) { ex.message?.also(::info) }
+fun BukkitPlugin.log(ex: Exception) = log{ex.printStackTrace(this)}
+fun BukkitPlugin.log(msg: String) = log{println(msg)}
+val BukkitPlugin.log get() =
+    dataFolder["log.txt"].apply { if(!exists()) createNewFile() }
+fun BukkitPlugin.log(action: PrintWriter.() -> Unit) =
+    PrintWriter(FileWriter(log, true), true)
+    .apply{print(date); action()}.close()
 
 fun BungeePlugin.info(msg: String) = logger.info(msg.replace("&", "§"))
 fun BungeePlugin.info(ex: Exception) { ex.message?.also(::info) }
@@ -83,6 +93,13 @@ fun BungeePlugin.warning(msg: String) = logger.warning(msg.replace("&", "§"))
 fun BungeePlugin.warning(ex: Exception) { ex.message?.also(::warning) }
 fun BungeePlugin.severe(msg: String) = logger.severe(msg.replace("&", "§"))
 fun BungeePlugin.severe(ex: Exception) { ex.message?.also(::severe) }
+fun BungeePlugin.log(ex: Exception) = log{ex.printStackTrace(this)}
+fun BungeePlugin.log(msg: String) = log{println(msg)}
+val BungeePlugin.log get() =
+    dataFolder["log.txt"].apply { if(!exists()) createNewFile() }
+fun BungeePlugin.log(action: PrintWriter.() -> Unit) =
+    PrintWriter(FileWriter(log, true), true)
+    .apply{print(date); action()}.close()
 
 // ----------------------------- KOTLIN4MC PLUGIN -----------------------------
 
@@ -115,6 +132,7 @@ interface TriConsumer<T, U, V> {
 
 
 // ----------------------------- OTHERS -----------------------------
+val date: String get() = SimpleDateFormat("MMM dd yyyy HH:mm:ss").format(Date())
 operator fun File.get(key: String) = File(this, key)
 val String.lc get() = toLowerCase()
 val String.ex get() = Exception(this)
@@ -128,20 +146,20 @@ val Any.nul get() = null
 fun ex(msg: String) = Exception(msg)
 
 inline fun <reified T: Exception, reified U: Any> catch(
-    err: (T) -> U,
-    run: () -> U
+        err: (T) -> U,
+        run: () -> U
 ): U = try{run()} catch(ex: Exception){
-        if(ex is T) err(ex) else throw ex
-    }
+    if(ex is T) err(ex) else throw ex
+}
 
 inline fun <reified T: Exception> catch(
-    err: (T) -> Unit = {it.printStackTrace()},
-    run: () -> Unit
+        err: (T) -> Unit = {it.printStackTrace()},
+        run: () -> Unit
 ): Unit = catch<T, Unit>(err, run)
 
 inline fun <reified T: Exception, reified U: Any> catch(
-    default: U,
-    run: () -> U
+        default: U,
+        run: () -> U
 ): U = try{run()} catch(ex: Exception){
     if(ex is T) default else throw ex
 }
@@ -241,7 +259,8 @@ fun BungeePlugin.load(
 } catch (e: IOException){ e.printStackTrace(); null }
 fun BungeePlugin.save(config: BungeeConfiguration, file: File) = provider.save(config, file)
 
-operator fun BungeeConfiguration.get(path: String) = getSection(path)
+fun BungeeConfiguration.section(path: String) = getSection(path)
+val BungeeConfiguration.sections get() = keys.map{section(it)}
 
 // --- BUKKIT ---
 fun BukkitPlugin.load(
@@ -253,7 +272,12 @@ fun BukkitPlugin.load(
     return BukkitYamlConfiguration.loadConfiguration(file);
 }
 
-operator fun BukkitYamlConfiguration.get(path: String) = getConfigurationSection(path)
+val BukkitYamlConfiguration.keys get() = getKeys(false)
+fun BukkitYamlConfiguration.section(path: String) = getConfigurationSection(path)
+val BukkitYamlConfiguration.sections get() = keys.map{section(it)}
+val BukkitConfigurationSection.keys get() = getKeys(false)
+fun BukkitConfigurationSection.section(path: String) = getConfigurationSection(path)
+val BukkitConfigurationSection.sections get() = keys.map{section(it)}
 
 // ----------------------------- LISTENERS -----------------------------
 inline fun <reified T: BukkitEvent> BukkitPlugin.listen(
@@ -302,42 +326,42 @@ inline fun <reified T: BungeeEvent> BungeePlugin.listen(
 
 // --- COMMAND AS RECEIVER ---
 fun BungeePlugin.command(
-    name: String,
-    permission: String,
-    vararg aliases: String,
-    callback: BungeeCommand.(BungeeSender, Array<String>) -> Unit
+        name: String,
+        permission: String,
+        vararg aliases: String,
+        callback: BungeeCommand.(BungeeSender, Array<String>) -> Unit
 ) = object: BungeeCommand(name, permission, *aliases){
     override fun execute(sender: BungeeSender, args: Array<String>)
-        = callback(sender, args)
+            = callback(sender, args)
 }.also{ proxy.pluginManager.registerCommand(this, it) }
 
 fun BungeePlugin.command(
-    name: String,
-    callback: BungeeCommand.(BungeeSender, Array<String>) -> Unit
+        name: String,
+        callback: BungeeCommand.(BungeeSender, Array<String>) -> Unit
 ) = object: BungeeCommand(name){
     override fun execute(sender: BungeeSender, args: Array<String>)
-        = callback(sender, args)
+            = callback(sender, args)
 }.also{ proxy.pluginManager.registerCommand(this, it) }
 
 // --- SENDER AS RECEIVER ---
 fun BungeePlugin.command(
-    name: String,
-    permission: String,
-    vararg aliases: String,
-    callback: BungeeSender.(Array<String>) -> Unit
+        name: String,
+        permission: String,
+        vararg aliases: String,
+        callback: BungeeSender.(Array<String>) -> Unit
 ) = command(name, permission, *aliases){sender, args -> sender.callback(args)}
 
 fun BungeePlugin.command(
-    name: String,
-    callback: BungeeSender.(Array<String>) -> Unit
+        name: String,
+        callback: BungeeSender.(Array<String>) -> Unit
 ) = command(name){ sender, args -> sender.callback(args) }
 
 // -------------- BUKKIT --------------
 
 // --- COMMAND AS RECEIVER ---
 fun BukkitPlugin.command(
-    name: String, permission: String? = null, vararg aliases: String,
-    executor: BukkitPluginCommand.(BukkitSender, Array<String>) -> Unit
+        name: String, permission: String? = null, vararg aliases: String,
+        executor: BukkitPluginCommand.(BukkitSender, Array<String>) -> Unit
 ) = getCommand(name).also {
     it.aliases = aliases.toList()
     it.executor = BukkitCommandExecutor {
@@ -349,19 +373,19 @@ fun BukkitPlugin.command(
 
 // --- SENDER AS RECEIVER ---
 fun BukkitPlugin.command(
-    name: String, permission: String? = null, vararg aliases: String,
-    executor: BukkitSender.(Array<String>) -> Unit
+        name: String, permission: String? = null, vararg aliases: String,
+        executor: BukkitSender.(Array<String>) -> Unit
 ) = command(name, permission, *aliases){ sender, args -> sender.executor(args)}
 
 // ----------------------------- SCHEDULER -----------------------------
 
 // --- BUKKIT ---
 fun BukkitPlugin.schedule(
-    async: Boolean = false,
-    delay: Long? = null,
-    period: Long? = null,
-    unit: TimeUnit? = null,
-    callback: () -> Unit
+        async: Boolean = false,
+        delay: Long? = null,
+        period: Long? = null,
+        unit: TimeUnit? = null,
+        callback: () -> Unit
 ): BukkitTask {
     if(period != null){
         var delay = delay ?: 0

@@ -191,6 +191,10 @@ val config = load(configFile)
 
 ### Fast logging
 
+You can use info(), warning() and severe() with String or Exception to log them in the console
+
+You can also use log() to write to a file named "log.txt" in your plugin's data folder
+
 ##### With Kotlin4MC
 ```kotlin
 info("Hello world!")

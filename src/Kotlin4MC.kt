@@ -5,16 +5,18 @@ package fr.rhaz.minecraft.kotlin
 import com.google.gson.JsonParser
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.ChatColor.LIGHT_PURPLE
+import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.chat.ClickEvent
-import net.md_5.bungee.api.chat.ClickEvent.Action.*
+import net.md_5.bungee.api.chat.ClickEvent.Action.OPEN_URL
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.event.PostLoginEvent
-import net.md_5.bungee.api.scheduler.ScheduledTask
 import net.md_5.bungee.event.EventBus
 import org.bukkit.Bukkit
-import org.bukkit.command.PluginCommand
-import org.bukkit.command.defaults.BukkitCommand
+import org.bukkit.Material
+import org.bukkit.Material.*
+import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.inventory.ItemStack
 import org.bukkit.scheduler.BukkitTask
 import java.io.*
 import java.lang.reflect.Method
@@ -25,8 +27,6 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.function.BiConsumer
 import java.util.function.Consumer
-import kotlin.collections.ArrayList
-import kotlin.collections.HashSet
 
 //import net.md_5.bungee.api.plugin.Plugin as BungeePlugin
 //import net.md_5.bungee.api.CommandSender as BungeeSender
@@ -71,6 +71,7 @@ typealias BukkitEventHandler = org.bukkit.event.EventHandler
 typealias BukkitYamlConfiguration = org.bukkit.configuration.file.YamlConfiguration
 typealias BukkitCommandExecutor = org.bukkit.command.CommandExecutor
 typealias BukkitConfigurationSection = org.bukkit.configuration.ConfigurationSection
+typealias BukkitPlayer = org.bukkit.entity.Player
 
 // ----------------------------- LOGGING -----------------------------
 fun BukkitPlugin.info(msg: String) = logger.info(msg.replace("&", "§"))
@@ -170,10 +171,17 @@ fun text(string: String) = TextComponent(string.replace("&", "§"))
 fun BungeeSender.msg(msg: String) = msg(text(msg))
 fun BungeeSender.msg(text: TextComponent) = sendMessage(text)
 fun BungeeSender.msg(ex: Exception) { ex.message?.also(::msg) }
+fun BungeeSender.execute(cmd: String)
+    = ProxyServer.getInstance().pluginManager.dispatchCommand(this, cmd)
 
 fun BukkitSender.msg(text: TextComponent) = spigot().sendMessage(text)
 fun BukkitSender.msg(msg: String) = msg(text(msg))
 fun BukkitSender.msg(ex: Exception) { ex.message?.also(::msg) }
+fun BukkitSender.execute(cmd: String)
+    = Bukkit.dispatchCommand(this, cmd)
+
+
+// ----------------------------- GUI -----------------------------
 
 // ----------------------------- UPDATES CHECKER -----------------------------
 fun spiget(id: Int, callback: (String) -> Unit) = Thread {

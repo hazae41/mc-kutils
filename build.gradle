@@ -13,7 +13,7 @@ apply plugin: 'kotlin'
 apply plugin: 'maven-publish'
 
 group 'fr.rhaz.minecraft'
-version '2.0.4'
+version '2.0.5'
 def pname = "Kotlin4MC"
 def desc = "Kotlin for Minecraft"
 
@@ -24,6 +24,7 @@ repositories {
     maven { url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"}
     maven { url 'https://repo.spongepowered.org/maven'}
     maven { url 'https://dl.bintray.com/kotlin/exposed/'}
+    maven { url 'https://mymavenrepo.com/repo/NIp3fBk55f5oF6VI1Wso/' }
 }
 
 dependencies {

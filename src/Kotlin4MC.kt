@@ -393,22 +393,23 @@ fun BukkitPlugin.schedule(
         delay: Long? = null,
         period: Long? = null,
         unit: TimeUnit? = null,
-        callback: () -> Unit
+        callback: BukkitTask.() -> Unit
 ): BukkitTask {
+    lateinit var task: BukkitTask
+    task =
     if(period != null){
         var delay = delay ?: 0
         delay = unit?.toSeconds(delay)?.let{it*20} ?: delay
         val period = unit?.toSeconds(period)?.let{it*20} ?: period
-        return if(async) server.scheduler.runTaskTimerAsynchronously(this, callback, delay, period)
-        else server.scheduler.runTaskTimer(this, callback, delay, period)
-    }
-    if(delay != null){
+        if(async) server.scheduler.runTaskTimerAsynchronously(this, {task.callback()}, delay, period)
+        else server.scheduler.runTaskTimer(this, {task.callback()}, delay, period)
+    } else if(delay != null){
         val delay = unit?.toSeconds(delay)?.let{it*20} ?: delay
-        return if(async) server.scheduler.runTaskLaterAsynchronously(this, callback, delay)
-        else server.scheduler.runTaskLater(this, callback, delay)
-    }
-    return if(async) server.scheduler.runTaskAsynchronously(this, callback)
-    else server.scheduler.runTask(this, callback)
+        if(async) server.scheduler.runTaskLaterAsynchronously(this, {task.callback()}, delay)
+        else server.scheduler.runTaskLater(this, {task.callback()}, delay)
+    } else if(async) server.scheduler.runTaskAsynchronously(this) {task.callback()}
+    else server.scheduler.runTask(this) {task.callback()}
+    return task
 }
 fun BukkitPlugin.cancelTasks() = server.scheduler.cancelTasks(this)
 
@@ -418,27 +419,27 @@ fun BungeePlugin.schedule(
         delay: Long? = null,
         period: Long? = null,
         unit: TimeUnit? = null,
-        callback: () -> Unit
+        callback: BungeeTask.() -> Unit
 ): BungeeTask {
-    if(period != null){
+    lateinit var task: BungeeTask
+    task =  if(period != null){
         var delay = delay ?: 0
         val unit = unit ?: TimeUnit.MILLISECONDS.also{ delay *= 50 }
-        return if(async)
+        if(async)
             proxy.scheduler.schedule(this, {
-                proxy.scheduler.runAsync(this, callback)
+                proxy.scheduler.runAsync(this, {task.callback()})
             }, delay, period, unit)
-        else proxy.scheduler.schedule(this, callback, delay, period, unit)
-    }
-    if(delay != null){
+        else proxy.scheduler.schedule(this, {task.callback()}, delay, period, unit)
+    } else if(delay != null){
         var delay = delay
         val unit = unit ?: TimeUnit.MILLISECONDS.also{ delay *= 50 }
         return if(async)
             proxy.scheduler.schedule(this, {
-                proxy.scheduler.runAsync(this, callback)
+                proxy.scheduler.runAsync(this) {task.callback()}
             }, delay, unit)
-        else proxy.scheduler.schedule(this, callback, delay, unit)
-    }
-    return if(async) proxy.scheduler.runAsync(this, callback)
-    else proxy.scheduler.schedule(this, callback, 0, TimeUnit.MILLISECONDS)
+        else proxy.scheduler.schedule(this, {task.callback()}, delay, unit)
+    } else if(async) proxy.scheduler.runAsync(this, {task.callback()})
+    else proxy.scheduler.schedule(this, {task.callback()}, 0, TimeUnit.MILLISECONDS)
+    return task
 }
 fun BungeePlugin.cancelTasks() = proxy.scheduler.cancel(this)

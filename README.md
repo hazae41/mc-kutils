@@ -110,6 +110,12 @@ schedule(true, delay = 20){
 schedule(true, period = 3, unit = TimeUnit.MINUTES){
     // this will be executed asynchronously each 3 minutes
 }
+
+// Tasks can cancel themselves
+schedule(period = ...) {
+    if(...) cancel()
+}
+
 ```
 
 Warning: the default unit is ticks, even on BungeeCord

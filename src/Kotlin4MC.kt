@@ -14,6 +14,8 @@ import net.md_5.bungee.event.EventBus
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.Material.*
+import org.bukkit.event.Event
+import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.inventory.ItemStack
@@ -306,7 +308,6 @@ fun BukkitConfigurationSection.section(path: String) = getConfigurationSection(p
 val BukkitConfigurationSection.sections get() = keys.map{section(it)}
 
 // ----------------------------- LISTENERS -----------------------------
-
 @JvmOverloads
 inline fun <reified T: BukkitEvent> BukkitPlugin.listen(
     priority: BukkitEventPriority = BukkitEventPriority.NORMAL,
@@ -314,7 +315,7 @@ inline fun <reified T: BukkitEvent> BukkitPlugin.listen(
     crossinline callback: (T) -> Unit
 ) = server.pluginManager.registerEvent(
     T::class.java, object: BukkitListener {},
-    priority, { _, it -> callback(it as T) },
+    priority, { _, it -> if(it is T) callback(it) },
     this, ignoreCancelled
 )
 

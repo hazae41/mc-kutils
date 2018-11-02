@@ -25,6 +25,7 @@ import java.nio.file.Files
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.*
 import java.util.function.BiConsumer
 import java.util.function.Consumer
 
@@ -165,6 +166,15 @@ inline fun <reified T: Exception, reified U: Any> catch(
     if(ex is T) default else throw ex
 }
 
+fun unit(unit: String, default: TimeUnit = MINUTES) =
+  when(unit){
+    "seconds", "second", "sec", "s" -> SECONDS
+    "minutes", "minute", "min", "m" -> MINUTES
+    "hours", "hour", "h"            -> HOURS
+    "days", "day", "d"              -> DAYS
+    else                            -> default
+  }
+
 // ----------------------------- MESSAGING -----------------------------
 fun text(string: String) = TextComponent(string.replace("&", "§"))
 
@@ -194,21 +204,25 @@ fun spiget(id: Int, callback: (String) -> Unit) = Thread {
 }.start()
 
 infix fun String.newerThan(v: String): Boolean = false.also{
-    val s1 = split('.');
-    val s2 = v.split('.');
+    val s1 = split('.')
+    val s2 = v.split('.')
     for(i in 0..Math.max(s1.size,s2.size)){
-        if(i !in s1.indices) return false;
-        if(i !in s2.indices) return true;
-        if(s1[i].toInt() > s2[i].toInt()) return true;
-        if(s1[i].toInt() < s2[i].toInt()) return false;
+        if(i !in s1.indices) return false
+        if(i !in s2.indices) return true
+        if(s1[i].toInt() > s2[i].toInt()) return true
+        if(s1[i].toInt() < s2[i].toInt()) return false
     }
 }
 
 // --- BUKKIT ---
-fun BukkitPlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: String = "rhaz.update")
-        = spiget(id) here@{
+@JvmOverloads
+fun BukkitPlugin.update(
+    id: Int,
+    color: ChatColor = LIGHT_PURPLE,
+    permission: String = "rhaz.update"
+) = spiget(id) here@{
 
-    if (!(it newerThan description.version)) return@here;
+    if (!(it newerThan description.version)) return@here
 
     val url = "https://www.spigotmc.org/resources/$id"
     val message = text(
@@ -230,26 +244,30 @@ fun BukkitPlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: St
 }
 
 // --- BUNGEE ----
-fun BungeePlugin.update(id: Int, color: ChatColor = LIGHT_PURPLE, permission: String = "rhaz.update")
-        = spiget(id) here@{
-    if (!(it newerThan description.version)) return@here;
+@JvmOverloads
+fun BungeePlugin.update(
+    id: Int,
+    color: ChatColor = LIGHT_PURPLE,
+    permission: String = "rhaz.update"
+) = spiget(id) here@{ new ->
+    val old = description.version
+    if (!(new newerThan old)) return@here
 
     val url = "https://www.spigotmc.org/resources/$id"
     val message = text(
-            "An update is available for ${description.name}!" +
-                    " Download it here: $url"
+        "An update is available for ${description.name} ($old -> $new): $url"
     ).apply {
         this.color = color
         clickEvent = ClickEvent(OPEN_URL, url)
     }
 
     schedule {
-        proxy.console.msg(message);
+        proxy.console.msg(message)
     }
 
     listen<PostLoginEvent> {
         if (it.player.hasPermission(permission))
-            it.player.msg(message)
+        it.player.msg(message)
     }
 }
 
@@ -277,7 +295,7 @@ fun BukkitPlugin.load(
 ): BukkitYamlConfiguration? {
     if (!file.parentFile.exists()) file.parentFile.mkdir()
     if (!file.exists()) java.nio.file.Files.copy(getResource(resource), file.toPath())
-    return BukkitYamlConfiguration.loadConfiguration(file);
+    return BukkitYamlConfiguration.loadConfiguration(file)
 }
 
 val BukkitYamlConfiguration.keys get() = getKeys(false)
@@ -293,9 +311,9 @@ inline fun <reified T: BukkitEvent> BukkitPlugin.listen(
         crossinline callback: (T) -> Unit
 ){
     server.pluginManager.registerEvent(
-            T::class.java, object: BukkitListener {},
-            priority, { _, it -> callback(it as T) },
-            this
+        T::class.java, object: BukkitListener {},
+        priority, { _, it -> callback(it as T) },
+        this
     )
 }
 
@@ -425,7 +443,7 @@ fun BungeePlugin.schedule(
     task =
     if(period != null){
         var delay = delay ?: 0
-        val unit = unit ?: TimeUnit.MILLISECONDS.also{ delay *= 50 }
+        val unit = unit ?: MILLISECONDS.also{ delay *= 50 }
         if(async)
             proxy.scheduler.schedule(this, {
                 proxy.scheduler.runAsync(this) {task.callback()}
@@ -433,14 +451,14 @@ fun BungeePlugin.schedule(
         else proxy.scheduler.schedule(this, {task.callback()}, delay, period, unit)
     } else if(delay != null){
         var delay = delay
-        val unit = unit ?: TimeUnit.MILLISECONDS.also{ delay *= 50 }
+        val unit = unit ?: MILLISECONDS.also{ delay *= 50 }
         if(async)
             proxy.scheduler.schedule(this, {
                 proxy.scheduler.runAsync(this) {task.callback()}
             }, delay, unit)
         else proxy.scheduler.schedule(this, {task.callback()}, delay, unit)
     } else if(async) proxy.scheduler.runAsync(this) {task.callback()}
-    else proxy.scheduler.schedule(this, {task.callback()}, 0, TimeUnit.MILLISECONDS)
+    else proxy.scheduler.schedule(this, {task.callback()}, 0, MILLISECONDS)
     return task
 }
 fun BungeePlugin.cancelTasks() = proxy.scheduler.cancel(this)

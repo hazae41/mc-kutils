@@ -168,7 +168,10 @@ inline fun <reified T: Exception, reified U: Any> catch(
     if(ex is T) default else throw ex
 }
 
-fun unit(unit: String, default: TimeUnit = MINUTES) =
+@Deprecated("", ReplaceWith("unitOf(unit, default)"))
+fun unit(unit: String, default: TimeUnit = MINUTES) = unitOf(unit, default)
+
+fun unitOf(unit: String, default: TimeUnit = MINUTES) =
   when(unit){
     "seconds", "second", "sec", "s" -> SECONDS
     "minutes", "minute", "min", "m" -> MINUTES

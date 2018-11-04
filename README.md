@@ -192,7 +192,7 @@ val config = loadConfig(configFile) // Will load resource "config.yml"
 
 ### Delegated configuration
 
-You use delegated configuration to manage big configurations
+You can use delegated configuration to manage big configurations
 ```kotlin
 class MyPlugin: BukkitPlugin(){
 

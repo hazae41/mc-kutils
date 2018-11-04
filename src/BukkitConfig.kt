@@ -12,6 +12,10 @@ import org.bukkit.util.Vector
 import java.io.File
 import kotlin.reflect.KProperty
 
+typealias BukkitConfig = Config
+typealias BukkitConfigFile = ConfigFile
+typealias BukkitConfigSection = ConfigSection
+
 abstract class Config(open var autoSave: Boolean = true){
 
     private lateinit var _config: ConfigurationSection
@@ -40,7 +44,7 @@ abstract class Config(open var autoSave: Boolean = true){
         }
     }
     open inner class boolean(val path: String, val def: Boolean = false){
-        operator fun getValue(ref: Any?, prop: KProperty<*>) = config.getBoolean(path, def)
+        operator fun getValue(ref: Any?, prop: KProperty<*>): Boolean = config.getBoolean(path, def)
         operator fun setValue(ref: Any?, prop: KProperty<*>, value: Boolean) {
             config.set(path, value); if(autoSave) save()
         }
@@ -52,7 +56,7 @@ abstract class Config(open var autoSave: Boolean = true){
         }
     }
     open inner class string(val path: String, val def: String = ""){
-        operator fun getValue(ref: Any?, prop: KProperty<*>) = config.getString(path, def)
+        operator fun getValue(ref: Any?, prop: KProperty<*>): String = config.getString(path, def)
         operator fun setValue(ref: Any?, prop: KProperty<*>, value: String) {
             config.set(path, value); if(autoSave) save()
         }
@@ -64,7 +68,7 @@ abstract class Config(open var autoSave: Boolean = true){
         }
     }
     open inner class int(val path: String, val def: Int = 0){
-        operator fun getValue(ref: Any?, prop: KProperty<*>) = config.getInt(path, def)
+        operator fun getValue(ref: Any?, prop: KProperty<*>): Int = config.getInt(path, def)
         operator fun setValue(ref: Any?, prop: KProperty<*>, value: Int) {
             config.set(path, value); if(autoSave) save()
         }
@@ -76,7 +80,7 @@ abstract class Config(open var autoSave: Boolean = true){
         }
     }
     open inner class long(val path: String, val def: Long = 0L){
-        operator fun getValue(ref: Any?, prop: KProperty<*>) = config.getLong(path, def)
+        operator fun getValue(ref: Any?, prop: KProperty<*>): Long = config.getLong(path, def)
         operator fun setValue(ref: Any?, prop: KProperty<*>, value: Long) {
             config.set(path, value); if(autoSave) save()
         }
@@ -88,7 +92,7 @@ abstract class Config(open var autoSave: Boolean = true){
         }
     }
     open inner class double(val path: String, val def: Double = 0.0){
-        operator fun getValue(ref: Any?, prop: KProperty<*>) = config.getDouble(path, def)
+        operator fun getValue(ref: Any?, prop: KProperty<*>): Double = config.getDouble(path, def)
         operator fun setValue(ref: Any?, prop: KProperty<*>, value: Double) {
             config.set(path, value); if(autoSave) save()
         }
@@ -160,8 +164,8 @@ abstract class Config(open var autoSave: Boolean = true){
         }
     }
     open inner class section(val path: String){
-        operator fun getValue(ref: Any?, prop: KProperty<*>): ConfigurationSection = config.getConfigurationSection(path)
-        operator fun setValue(ref: Any?, prop: KProperty<*>, value: ConfigurationSection) {
+        operator fun getValue(ref: Any?, prop: KProperty<*>): ConfigurationSection? = config.getConfigurationSection(path)
+        operator fun setValue(ref: Any?, prop: KProperty<*>, value: ConfigurationSection?) {
             config.set(path, value); if(autoSave) save()
         }
     }

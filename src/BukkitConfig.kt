@@ -193,17 +193,17 @@ open class ConfigFile(autoSave: Boolean = true): Config(autoSave){
         if(::file.isInitialized)
             throw ex("Config is already initialized")
 
-        if(resource.endsWith(".yml"))
-            plugin.saveResource(resource, false)
-        else
-            plugin.saveResource("$resource.yml", false)
-
         file = plugin.dataFolder[path]
+
+        if(resource.endsWith(".yml"))
+        plugin.saveResource(resource, file)
+        else
+        plugin.saveResource("$resource.yml", file)
     }
 
     override fun reload(){
         if(!::file.isInitialized) throw ex("Config is not initialized")
-        config = kotlinBukkit.load(file)
+        config = BukkitYamlConfiguration.loadConfiguration(file)
         ?: throw ex("Could not load ${file.name}")
     }
 

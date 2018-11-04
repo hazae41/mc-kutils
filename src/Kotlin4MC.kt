@@ -11,20 +11,14 @@ import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.ClickEvent.Action.OPEN_URL
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.event.PostLoginEvent
+import net.md_5.bungee.config.Configuration
 import net.md_5.bungee.event.EventBus
 import org.bukkit.Bukkit
-import org.bukkit.Material
-import org.bukkit.Material.*
-import org.bukkit.event.Event
-import org.bukkit.event.Listener
-import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.player.PlayerJoinEvent
-import org.bukkit.inventory.ItemStack
 import org.bukkit.scheduler.BukkitTask
 import java.io.*
 import java.lang.reflect.Method
 import java.net.URL
-import java.nio.file.Files
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -286,28 +280,55 @@ fun BungeePlugin.update(
 // ----------------------------- CONFIG LOADING -----------------------------
 
 // --- BUNGEE ---
-val BungeePlugin.provider get() = BungeeConfigurationProvider.getProvider(BungeeYaml::class.java)
-fun BungeePlugin.load(
-        file: File,
-        resource: String = file.nameWithoutExtension+"/bungee.yml"
-) = try {
-    if (!dataFolder.exists()) dataFolder.mkdir()
-    if (!file.exists()) Files.copy(getResourceAsStream(resource), file.toPath())
-    provider.load(file)
-} catch (e: IOException){ e.printStackTrace(); null }
-fun BungeePlugin.save(config: BungeeConfiguration, file: File) = provider.save(config, file)
+val provider get() = BungeeConfigurationProvider.getProvider(BungeeYaml::class.java)
+
+@Deprecated("Use loadConfig() instead")
+fun BungeePlugin.load(file: File, resource: String = file.nameWithoutExtension+"/bungee.yml")
+= loadConfig(file, resource)
+
+fun BungeePlugin.loadConfig(
+    file: File, resource: String = file.path
+): Configuration? {
+    saveResource(resource, file)
+    return provider.load(file)
+    ?: throw ex("Could not load ${file.path}")
+}
+
+fun BungeePlugin.saveResource(resource: String, file: File){
+    if(file.exists()) return
+    file.mkdirs()
+    getResourceAsStream(resource).copyTo(file.outputStream())
+}
+
+@Deprecated("Use saveConfig() instead")
+fun BungeePlugin.save(config: BungeeConfiguration, file: File) = saveConfig(config, file)
+
+fun saveConfig(config: BungeeConfiguration, file: File) = provider.save(config, file)
 
 fun BungeeConfiguration.section(path: String) = getSection(path)
 val BungeeConfiguration.sections get() = keys.map{section(it)}
 
 // --- BUKKIT ---
-fun BukkitPlugin.load(
-        file: File,
-        resource: String = file.nameWithoutExtension+"/bukkit.yml"
+
+@Deprecated("Use loadConfig() instead")
+fun BukkitPlugin.load(file: File, resource: String = file.nameWithoutExtension+"/bukkit.yml")
+= loadConfig(file, resource)
+
+@Deprecated("Replace with delegated configuration (ConfigFile)")
+fun BukkitPlugin.loadConfig(
+        file: File, resource: String = file.path
 ): BukkitYamlConfiguration? {
-    if (!file.parentFile.exists()) file.parentFile.mkdir()
-    if (!file.exists()) java.nio.file.Files.copy(getResource(resource), file.toPath())
+    saveResource(resource, file)
     return BukkitYamlConfiguration.loadConfiguration(file)
+    ?: throw ex("Could not load ${file.name}")
+}
+
+fun saveConfig(config: BukkitYamlConfiguration, file: File) = config.save(file)
+
+fun BukkitPlugin.saveResource(resource: String, file: File){
+    if (file.exists()) return
+    file.mkdirs()
+    getResource(resource).copyTo(file.outputStream())
 }
 
 val BukkitYamlConfiguration.keys get() = getKeys(false)

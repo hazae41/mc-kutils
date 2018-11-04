@@ -178,23 +178,19 @@ open class ConfigFile(autoSave: Boolean = true): Config(autoSave){
 
         file = plugin.dataFolder[path]
 
-        if(file.exists()) return
-        file.mkdirs()
-        val resource =
-            if(resource.endsWith(".yml")) resource
-            else "$resource.yml"
-        val stream = plugin.getResourceAsStream(resource)
-        val out = file.outputStream()
-        stream.copyTo(out)
+        if(resource.endsWith(".yml"))
+        plugin.saveResource(resource, file)
+        else
+        plugin.saveResource("$resource.yml", file)
     }
 
     override fun reload(){
         if(!::file.isInitialized) throw ex("Config is not initialized")
-        config = kotlinBungee.load(file)
+        config = provider.load(file)
         ?: throw ex("Could not load ${file.name}")
     }
 
-    override fun save() = kotlinBungee.save(config, file)
+    override fun save() = saveConfig(config, file)
 }
 
 fun BungeePlugin.init(vararg configs: ConfigFile){

@@ -73,6 +73,7 @@ typealias BukkitListener = org.bukkit.event.Listener
 typealias BukkitEventPriority = org.bukkit.event.EventPriority
 typealias BukkitEventHandler = org.bukkit.event.EventHandler
 typealias BukkitYamlConfiguration = org.bukkit.configuration.file.YamlConfiguration
+typealias BukkitFileConfiguration = org.bukkit.configuration.file.FileConfiguration
 typealias BukkitCommandExecutor = org.bukkit.command.CommandExecutor
 typealias BukkitConfigurationSection = org.bukkit.configuration.ConfigurationSection
 typealias BukkitPlayer = org.bukkit.entity.Player
@@ -108,10 +109,15 @@ fun BungeePlugin.log(action: PrintWriter.() -> Unit) =
 
 // ----------------------------- KOTLIN4MC PLUGIN -----------------------------
 
+lateinit var kotlinBukkit: Kotlin4Bukkit
 class Kotlin4Bukkit: BukkitPlugin(){
+    init { kotlinBukkit = this }
     override fun onEnable() = update(58015, LIGHT_PURPLE)
 }
+
+lateinit var kotlinBungee: Kotlin4Bungee
 class Kotlin4Bungee: BungeePlugin(){
+    init { kotlinBungee = this }
     override fun onEnable() = update(58015, LIGHT_PURPLE)
 }
 

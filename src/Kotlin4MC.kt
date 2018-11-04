@@ -1,4 +1,5 @@
 @file:JvmName("Kotlin4MC")
+@file:JvmMultifileClass
 
 package fr.rhaz.minecraft.kotlin
 

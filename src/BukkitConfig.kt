@@ -6,6 +6,7 @@ import org.bukkit.OfflinePlayer
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.configuration.serialization.ConfigurationSerializable
+import org.bukkit.event.server.PluginEnableEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.util.Vector
 import java.io.File
@@ -17,13 +18,13 @@ abstract class Config(open var autoSave: Boolean = true){
     var config: ConfigurationSection
         set(value){ _config = value }
         get(){
-            if(!::_config.isInitialized) load()
+            if(!::_config.isInitialized) reload()
             return _config
         }
 
     open val sections get() = config.sections
 
-    abstract fun load()
+    abstract fun reload()
     abstract fun save()
 
     open inner class any(val path: String, val def: Any? = null){
@@ -166,9 +167,38 @@ abstract class Config(open var autoSave: Boolean = true){
     }
 }
 
-open class ConfigFile(var file: File, autoSave: Boolean = true): Config(autoSave){
+open class ConfigFile(autoSave: Boolean = true): Config(autoSave){
 
-    override fun load(){
+    lateinit var file: File
+    constructor(
+        file: File, autoSave: Boolean = true
+    ): this(autoSave){
+        this.file = file
+    }
+
+    private lateinit var path: String
+    constructor(
+        path: String, autoSave: Boolean = true
+    ): this(autoSave){
+        if(!path.endsWith(".yml"))
+        this.path = "$path.yml"
+        else this.path = path
+    }
+
+    fun init(plugin: BukkitPlugin, resource: String = path){
+        if(::file.isInitialized)
+            throw ex("Config is already initialized")
+
+        if(resource.endsWith(".yml"))
+            plugin.saveResource(resource, false)
+        else
+            plugin.saveResource("$resource.yml", false)
+
+        file = plugin.dataFolder[path]
+    }
+
+    override fun reload(){
+        if(!::file.isInitialized) throw ex("Config is not initialized")
         config = kotlinBukkit.load(file)
         ?: throw ex("Could not load ${file.name}")
     }
@@ -180,11 +210,15 @@ open class ConfigFile(var file: File, autoSave: Boolean = true): Config(autoSave
     }
 }
 
+fun BukkitPlugin.init(vararg configs: ConfigFile){
+    configs.forEach { it.init(this) }
+}
+
 open class ConfigSection(
     var parent: Config, var path: String, autoSave: Boolean = true
 ): Config(autoSave){
 
-    override fun load() {
+    override fun reload() {
         config = parent.config.getConfigurationSection(path)
         ?: throw ex("Could not load $path from ${parent.config.name}")
     }
@@ -194,34 +228,24 @@ open class ConfigSection(
 
 // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- TEST -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
 
-lateinit var plugin: BukkitPlugin
-lateinit var oplayer: OfflinePlayer
-object MyConf: ConfigFile(plugin.dataFolder["config.yml"]){
-    var players by section("players")
-    val mySection get() = MySection
-    val mySection2 get() = MySection2(this)
-}
+class MyPlugin: BukkitPlugin(){
 
-class MySection2(parent: Config): ConfigSection(parent, "section"){
-
-}
-
-object MySection: ConfigSection(MyConf, "section"){
-    var name by string("name")
-}
-
-object CustomConfig: Config(){
-    override fun load() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    object MyConfig: ConfigFile("config"){
+        var debug by boolean("debug")
+        var alertMessage by string("alert-message")
+        var enabledWorlds by stringList("enabled-worlds")
     }
 
-    override fun save() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun onEnable(){
+        // Initialize the object with the current file
+        init(MyConfig)
+        // We can access properties dynamically
+        info("debug value: " + MyConfig.debug)
+        // Change them
+        MyConfig.debug = false
+        // Save them (if auto-saving is disabled)
+        MyConfig.save()
+        // Reload the config from the file
+        MyConfig.reload()
     }
-}
-
-fun BukkitPlugin.test(){
-    MyConf.load()
-    MySection.load()
-    MySection.name
 }

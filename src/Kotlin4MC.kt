@@ -288,7 +288,7 @@ fun BungeePlugin.load(file: File, resource: String = file.nameWithoutExtension+"
 
 fun BungeePlugin.loadConfig(
     file: File, resource: String = file.name
-): Configuration? {
+): Configuration {
     saveResource(resource, file)
     return provider.load(file)
     ?: throw ex("Could not load ${file.path}")
@@ -317,7 +317,7 @@ fun BukkitPlugin.load(file: File, resource: String = file.nameWithoutExtension+"
 @Deprecated("Replace with delegated configuration (ConfigFile)")
 fun BukkitPlugin.loadConfig(
         file: File, resource: String = file.name
-): BukkitYamlConfiguration? {
+): BukkitYamlConfiguration {
     saveResource(resource, file)
     return BukkitYamlConfiguration.loadConfiguration(file)
     ?: throw ex("Could not load ${file.name}")

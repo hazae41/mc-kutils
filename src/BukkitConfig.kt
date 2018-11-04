@@ -6,10 +6,12 @@ import org.bukkit.OfflinePlayer
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.configuration.serialization.ConfigurationSerializable
+import org.bukkit.entity.Player
 import org.bukkit.event.server.PluginEnableEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.util.Vector
 import java.io.File
+import java.util.*
 import kotlin.reflect.KProperty
 
 typealias BukkitConfig = Config
@@ -228,28 +230,4 @@ open class ConfigSection(
     }
 
     override fun save() = parent.config.set(path, config)
-}
-
-// -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- TEST -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
-
-class MyPlugin: BukkitPlugin(){
-
-    object MyConfig: ConfigFile("config"){
-        var debug by boolean("debug")
-        var alertMessage by string("alert-message")
-        var enabledWorlds by stringList("enabled-worlds")
-    }
-
-    override fun onEnable(){
-        // Initialize the object with the current file
-        init(MyConfig)
-        // We can access properties dynamically
-        info("debug value: " + MyConfig.debug)
-        // Change them
-        MyConfig.debug = false
-        // Save them (if auto-saving is disabled)
-        MyConfig.save()
-        // Reload the config from the file
-        MyConfig.reload()
-    }
 }

@@ -179,21 +179,106 @@ If there is an error, do not continue.
 
 ```kotlin
 val configFile = dataFolder["config.yml"]
-val config = load(configFile, "config.yml")
-    ?: return severe("Could not load configuration")
+val config = loadConfig(configFile, "configs/config.yml")
+// Will load resource configs/config.yml
 ```
 
-You can ommit the resource argument, it will copy the resource
-
-- "config/bungee.yml" if used on BungeeCord
-
-- "config/bukkit.yml" if used on Bukkit
+You can ommit the resource argument, it will copy the resource of the same name as the file
 
 ```kotlin
 val configFile = dataFolder["config.yml"]
-val config = load(configFile)
-    ?: return severe("Could not load configuration")
+val config = loadConfig(configFile) // Will load resource "config.yml"
 ```
+
+### Delegated configuration
+
+You use delegated configuration to manage big configurations
+```kotlin
+class MyPlugin: BukkitPlugin(){
+
+    object MyConfig: ConfigFile("config"){
+        var debug by boolean("debug")
+        var alertMessage by string("alert-message")
+        var enabledWorlds by stringList("enabled-worlds")
+    }
+
+    override fun onEnable(){
+        // Initialize the object with the current file
+        init(MyConfig) // (it will copy the resource config.yml to the data folder)
+        // We can access properties dynamically
+        info("debug: " + MyConfig.debug)
+        // Change them (if "var" is used)
+        MyConfig.debug = false
+        // Save them (if auto-saving is disabled)
+        MyConfig.save()
+        // Reload the config from the file
+        MyConfig.reload()
+    }
+}
+```
+
+You have to init the configuration only if you're using a resource
+````kotlin
+ConfigFile(file: File)
+// This will load the config from the file
+// No init() required
+
+ConfigFile(path: String)
+// This will copy the resource located at path to a file of the same path in the data folder
+// Needs to be initialized with init(plugin) or plugin.init(config)
+// You can ommit the .yml in the path
+// You can specify the resource to copy with init(plugin, resourcePath)
+````
+
+You can pass multiple ConfigFile to the init() like
+````kotlin
+init(Options, Players, Worlds, ...)
+````
+
+By default, the configuration is saved every time a property is changed
+
+You can disable auto-saving by doing
+````kotlin
+MyConfig.autoSave = false
+````
+or changing the constructor
+````kotlin
+object MyConfig: ConfigFile("config", false){
+    ...
+}
+````
+
+You can also use sections
+````kotlin
+object MySection: ConfigSection(MyConfig, "mysection"){
+    val host by string("host")
+    val port by int("port")
+}
+````
+
+It is recommended to use objects instead of class, but you can use them if you need parameters
+````kotlin
+inner class PlayerInfo(uuid: UUID): ConfigFile(dataFolder["$uuid.yml"]){
+    val friends by stringList("friends")
+    // ...
+}
+
+val Player.info get() = PlayerInfo(uniqueId)
+val Player.friends get() = info.friends
+````
+
+````kotlin
+class SocketConfig(id: String): ConfigSection(MyConfig, "sockets.$id"){
+    val host by string("host")
+    val port by int("port")
+}
+
+fun address(id: String){
+    val config = SocketConfig(id)
+    return config.host + ":" + config.port
+}
+
+````
 
 ### Fast logging
 

@@ -208,21 +208,3 @@ open class ConfigSection(
 
     override fun save() = parent.config.set(path, config)
 }
-
-// -*-*-*-*-*-*-*-*-*-*-*-*-*- TEST -*-*-*-*-*-*-*-*-*-*-*-*-*-
-
-class MyPlugin: BungeePlugin(){
-
-    object MyConfig: ConfigFile("config"){
-        var debug by boolean("debug")
-        var alertMessage by string("alert-message")
-        var enabledWorlds by stringList("enabled-worlds")
-    }
-
-    override fun onEnable() {
-        init(MyConfig)
-        info("Debug value is " + MyConfig.debug)
-        MyConfig.debug = false
-
-    }
-}

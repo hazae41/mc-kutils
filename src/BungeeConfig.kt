@@ -175,13 +175,11 @@ open class ConfigFile(autoSave: Boolean = true): Config(autoSave){
     fun init(plugin: BungeePlugin, resource: String = path){
         if(::file.isInitialized)
             throw ex("Config is already initialized")
-
         file = plugin.dataFolder[path]
-
         if(resource.endsWith(".yml"))
-        plugin.saveResource(resource, file)
+            plugin.saveResource(resource, file)
         else
-        plugin.saveResource("$resource.yml", file)
+            plugin.saveResource("$resource.yml", file)
     }
 
     override fun reload(){

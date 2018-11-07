@@ -296,7 +296,8 @@ fun BungeePlugin.loadConfig(
 
 fun BungeePlugin.saveResource(resource: String, file: File){
     if(file.exists()) return
-    file.mkdirs()
+    file.parentFile.mkdirs()
+    file.createNewFile()
     getResourceAsStream(resource).copyTo(file.outputStream())
 }
 
@@ -327,7 +328,8 @@ fun saveConfig(config: BukkitYamlConfiguration, file: File) = config.save(file)
 
 fun BukkitPlugin.saveResource(resource: String, file: File){
     if (file.exists()) return
-    file.mkdirs()
+    file.parentFile.mkdirs()
+    file.createNewFile()
     getResource(resource).copyTo(file.outputStream())
 }
 

@@ -3,6 +3,7 @@
 
 package fr.rhaz.minecraft.kotlin
 
+import cn.nukkit.lang.TextContainer
 import com.google.gson.JsonParser
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.ChatColor.LIGHT_PURPLE
@@ -25,26 +26,6 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.*
 import java.util.function.BiConsumer
 import java.util.function.Consumer
-
-//import net.md_5.bungee.api.plugin.Plugin as BungeePlugin
-//import net.md_5.bungee.api.CommandSender as BungeeSender
-//import net.md_5.bungee.api.plugin.Event as BungeeEvent
-//import net.md_5.bungee.event.EventPriority as BungeeEventPriority
-//import net.md_5.bungee.api.plugin.Listener as BungeeListener
-//import net.md_5.bungee.event.EventHandler as BungeeEventHandler
-//import net.md_5.bungee.config.Configuration as BungeeConfiguration
-//import net.md_5.bungee.config.YamlConfiguration as BungeeYaml
-//import net.md_5.bungee.config.ConfigurationProvider as BungeeConfigurationProvider
-//import net.md_5.bungee.api.plugin.Command as BungeeCommand
-//
-//import org.bukkit.plugin.java.JavaPlugin as BukkitPlugin
-//import org.bukkit.command.CommandSender as BukkitSender
-//import org.bukkit.event.Event as BukkitEvent
-//import org.bukkit.event.Listener as BukkitListener
-//import org.bukkit.event.EventPriority as BukkitEventPriority
-//import org.bukkit.event.EventHandler as BukkitEventHandler
-//import org.bukkit.configuration.file.YamlConfiguration as BukkitYamlConfiguration
-//import org.bukkit.command.CommandExecutor as BukkitCommandExecutor
 
 // ----------------------------- TYPE ALIASES -----------------------------
 typealias BungeePlugin = net.md_5.bungee.api.plugin.Plugin
@@ -72,13 +53,21 @@ typealias BukkitCommandExecutor = org.bukkit.command.CommandExecutor
 typealias BukkitConfigurationSection = org.bukkit.configuration.ConfigurationSection
 typealias BukkitPlayer = org.bukkit.entity.Player
 
+typealias NukkitPlugin = cn.nukkit.plugin.PluginBase
+typealias NukkitSender = cn.nukkit.command.CommandSender
+typealias NukkitEvent = cn.nukkit.event.Event
+typealias NukkitEventPriority = cn.nukkit.event.EventPriority
+typealias NukkitListener = cn.nukkit.event.Listener
+typealias NukkitEventHandler = cn.nukkit.event.EventHandler
+typealias NukkitCommand = cn.nukkit.command.Command
+
 // ----------------------------- LOGGING -----------------------------
 fun BukkitPlugin.info(msg: String) = logger.info(msg.replace("&", "§"))
 fun BukkitPlugin.info(ex: Exception) { ex.message?.also(::info) }
 fun BukkitPlugin.warning(msg: String) = logger.warning(msg.replace("&", "§"))
 fun BukkitPlugin.warning(ex: Exception) { ex.message?.also(::warning) }
 fun BukkitPlugin.severe(msg: String) = logger.severe(msg.replace("&", "§"))
-fun BukkitPlugin.severe(ex: Exception) { ex.message?.also(::info) }
+fun BukkitPlugin.severe(ex: Exception) { ex.message?.also(::severe) }
 fun BukkitPlugin.log(ex: Exception) = log{ex.printStackTrace(this)}
 fun BukkitPlugin.log(msg: String) = log{println(msg)}
 val BukkitPlugin.log get() =
@@ -101,6 +90,24 @@ fun BungeePlugin.log(action: PrintWriter.() -> Unit) =
     PrintWriter(FileWriter(log, true), true)
     .apply{print(date); action()}.close()
 
+fun NukkitPlugin.info(msg: String) = logger.info(msg.replace("&", "§"))
+fun NukkitPlugin.info(ex: Exception) { ex.message?.also(::info) }
+fun NukkitPlugin.warning(msg: String) = logger.warning(msg.replace("&", "§"))
+fun NukkitPlugin.warning(ex: Exception) { ex.message?.also(::warning) }
+fun NukkitPlugin.critical(msg: String) = logger.critical(msg.replace("&", "§"))
+fun NukkitPlugin.critical(ex: Exception) { ex.message?.also(::info) }
+fun NukkitPlugin.emergency(msg: String) = logger.emergency(msg.replace("&", "§"))
+fun NukkitPlugin.emergency(ex: Exception) { ex.message?.also(::emergency) }
+fun NukkitPlugin.debug(msg: String) = logger.debug(msg.replace("&", "§"))
+fun NukkitPlugin.debug(ex: Exception) { ex.message?.also(::debug) }
+fun NukkitPlugin.log(ex: Exception) = log{ex.printStackTrace(this)}
+fun NukkitPlugin.log(msg: String) = log{println(msg)}
+val NukkitPlugin.log get() =
+    dataFolder["log.txt"].apply { if(!exists()) createNewFile() }
+fun NukkitPlugin.log(action: PrintWriter.() -> Unit) =
+    PrintWriter(FileWriter(log, true), true)
+    .apply{print(date); action()}.close()
+
 // ----------------------------- KOTLIN4MC PLUGIN -----------------------------
 
 lateinit var kotlinBukkit: Kotlin4Bukkit
@@ -113,6 +120,11 @@ lateinit var kotlinBungee: Kotlin4Bungee
 class Kotlin4Bungee: BungeePlugin(){
     init { kotlinBungee = this }
     override fun onEnable() = update(58015, LIGHT_PURPLE)
+}
+
+lateinit var kotlin4Nukkit: Kotlin4Nukkit
+class Kotlin4Nukkit: NukkitPlugin(){
+    init { kotlin4Nukkit = this }
 }
 
 // ----------------------------- JAVA COMPAT -----------------------------
@@ -196,8 +208,11 @@ fun BukkitSender.msg(ex: Exception) { ex.message?.also(::msg) }
 fun BukkitSender.execute(cmd: String)
     = Bukkit.dispatchCommand(this, cmd)
 
-
-// ----------------------------- GUI -----------------------------
+fun NukkitSender.msg(msg: String) = sendMessage(msg.replace("&", "§"))
+fun NukkitSender.msg(text: TextContainer) = sendMessage(text.apply { this.text = this.text.replace("&", "§") })
+fun NukkitSender.msg(ex: Exception) { ex.message?.also(::msg)}
+fun NukkitSender.execute(cmd: String)
+    = server.dispatchCommand(this, cmd)
 
 // ----------------------------- UPDATES CHECKER -----------------------------
 fun spiget(id: Int, callback: (String) -> Unit) = Thread {
@@ -349,6 +364,17 @@ inline fun <reified T: BukkitEvent> BukkitPlugin.listen(
 ) = server.pluginManager.registerEvent(
     T::class.java, object: BukkitListener {},
     priority, { _, it -> if(it is T) callback(it) },
+    this, ignoreCancelled
+)
+
+@JvmOverloads
+inline fun <reified T: NukkitEvent> NukkitPlugin.listen(
+    priority: NukkitEventPriority = NukkitEventPriority.NORMAL,
+    ignoreCancelled: Boolean = false,
+    crossinline callback: (T) -> Unit
+) = server.pluginManager.registerEvent(
+    T::class.java, object: NukkitListener{},
+    priority, { _: NukkitListener, it: NukkitEvent -> if(it is T) callback(it)},
     this, ignoreCancelled
 )
 

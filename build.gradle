@@ -13,7 +13,7 @@ apply plugin: 'kotlin'
 apply plugin: 'maven-publish'
 
 group 'fr.rhaz.minecraft'
-version '2.0.11'
+version '2.1'
 def pname = "Kotlin4MC"
 def desc = "Kotlin for Minecraft"
 

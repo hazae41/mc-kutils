@@ -1,0 +1,4 @@
+name: @name@
+version: @version@
+main: fr.rhaz.minecraft.kotlin.nukkit.Kotlin4NukkitPlugin
+author: Hazae41

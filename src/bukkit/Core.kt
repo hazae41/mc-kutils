@@ -64,19 +64,20 @@ fun BukkitPlugin.schedule(
         callback: BukkitTask.() -> Unit
 ): BukkitTask {
     lateinit var task: BukkitTask
-    task =
-            if (period != null) {
-                var delay = delay ?: 0
-                delay = unit?.toSeconds(delay)?.let { it * 20 } ?: delay
-                val period = unit?.toSeconds(period)?.let { it * 20 } ?: period
-                if (async) server.scheduler.runTaskTimerAsynchronously(this, { task.callback() }, delay, period)
-                else server.scheduler.runTaskTimer(this, { task.callback() }, delay, period)
-            } else if (delay != null) {
-                val delay = unit?.toSeconds(delay)?.let { it * 20 } ?: delay
-                if (async) server.scheduler.runTaskLaterAsynchronously(this, { task.callback() }, delay)
-                else server.scheduler.runTaskLater(this, { task.callback() }, delay)
-            } else if (async) server.scheduler.runTaskAsynchronously(this) { task.callback() }
-            else server.scheduler.runTask(this) { task.callback() }
+    task = {
+        if (period != null) {
+            var delay = delay ?: 0
+            delay = unit?.toSeconds(delay)?.let { it * 20 } ?: delay
+            val period = unit?.toSeconds(period)?.let { it * 20 } ?: period
+            if (async) server.scheduler.runTaskTimerAsynchronously(this, { task.callback() }, delay, period)
+            else server.scheduler.runTaskTimer(this, { task.callback() }, delay, period)
+        } else if (delay != null) {
+            val delay = unit?.toSeconds(delay)?.let { it * 20 } ?: delay
+            if (async) server.scheduler.runTaskLaterAsynchronously(this, { task.callback() }, delay)
+            else server.scheduler.runTaskLater(this, { task.callback() }, delay)
+        } else if (async) server.scheduler.runTaskAsynchronously(this) { task.callback() }
+        else server.scheduler.runTask(this) { task.callback() }
+    }()
     return task
 }
 

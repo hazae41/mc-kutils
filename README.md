@@ -15,7 +15,7 @@ You can componentize and colorize any message
 ##### With Kotlin4MC
 
 ```kotlin
-text("Hello world!")
+textOf("Hello world!")
 ```
 
 ##### Without Kotlin4MC
@@ -284,7 +284,7 @@ fun address(id: String){
 
 You can use info(), warning() and severe() with String or Exception to log them in the console
 
-You can also use log() to write to a file named "log.txt" in your plugin's data folder
+You can also use logToFile() to write to a file named "log.txt" in your plugin's data folder
 
 ##### With Kotlin4MC
 ```kotlin
@@ -447,48 +447,6 @@ val msg = catch(::default){
 info("The message is: $msg")
 ```
 
-### Java compat optimization
-
-Java developers that use your Kotlinized plugins can easily access the Unit type by using getUnit() in any context
-and they can access lambda functions of Kotlin with listener()
-
-Let's say you have this method in your API
-
-```kotlin
-fun performTask(callback: (String) -> Unit) =
-    Thread {
-        // long task
-        val result: String = ...
-        callback(result)
-    }
-```
-
-And Java developers need to use it
-
-##### With Kotlin4MC: the developer does not need Kotlin stdlib to access Unit
-```java
-// Java using getUnit()
-performTask((result) -> {
-    player.msg(result);
-    return getUnit();
-})
-
-// Java using listener()
-performTask(
-    listener((result) -> player.msg(result))
-)
-// Listener converts a Java consumer into a Kotlin function
-```
-
-##### Without Kotlin4MC: the developer needs Kotlin stdlib to access Unit
-```java
-// Java using Unit.INSTANCE
-performTask((result) -> {
-    player.msg(result);
-    return Unit.INSTANCE;
-})
-```
-
 ### Short equality checks
 
 You can use .not() and .eq() to check inequality/equality of any object
@@ -511,43 +469,6 @@ val delay = config.getLong("delay").not(0) // Assignment + Check
 ```kotlin
 val delay = config.getLong("delay")  // Assignment
 if(delay == 0) return warning("Delay should not be 0") // Check
-```
-
-### Short Unit conversion
-
-You can use .unit after anything to convert it to Unit
-
-```kotlin
-interface Tester{
-    fun test(): Unit
-}
-
-fun task(arg: Argument): Result // ...
-
-class myClass: Tester{
-    // throws error
-    override fun test(): Unit = task()
-
-    // too verbose
-    override fun test(): Unit {
-        task()
-    }
-    
-    // correct
-    override fun test(): Unit = task().unit
-}
-```
-
-### Short null conversion
-
-You can use .nul after any object to convert it to null
-
-```kotlin
-fun complex(arg: Argument?): Result? { 
-    arg ?: return warning("Arg must not be null").nul
-    // val result = ...
-    return result
- }
 ```
 
 ### How to implement it?

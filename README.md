@@ -163,12 +163,12 @@ You can use .lc after any String to get its lower case version
 
 ##### With Kotlin4MC
 ```kotlin
-"HeLLo WorLd".lc // Beautiful
+"HeLLo WorLd".lowerCase
 ```
 
 ##### Without Kotlin4MC
 ```kotlin
-"HeLLo WorLd".toLowerCase() // Ugly
+"HeLLo WorLd".toLowerCase() 
 ```
 
 ### Simple configuration loading
@@ -559,7 +559,7 @@ fun complex(arg: Argument?): Result? {
       }
 
       dependencies {
-          compileOnly 'fr.rhaz.minecraft:kotlin4mc:2.0.9'
+          compileOnly 'fr.rhaz.minecraft:kotlin4mc:2.1.0'
       }
 
 
@@ -576,7 +576,7 @@ fun complex(arg: Argument?): Result? {
         <dependency>
             <groupId>fr.rhaz.minecraft</groupId>
             <artifactId>kotlin4mc</artifactId>
-            <version>2.0.9</version>
+            <version>2.1.0</version>
             <scope>provided</scope>
         </dependency>
       </dependencies>

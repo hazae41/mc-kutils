@@ -12,33 +12,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.*
-import java.util.function.BiConsumer
-import java.util.function.Consumer
 
-// JAVA COMPAT
-val unit = Unit
-
-fun <T> listener(callable: Consumer<T>): Function1<T, Unit> = { t -> callable.accept(t); Unit }
-fun <T, U> listener(callable: BiConsumer<T, U>): Function2<T, U, Unit> = { t, u -> callable.accept(t, u); Unit }
-fun <T, U, V> listener(callable: TriConsumer<T, U, V>): Function3<T, U, V, Unit> = { t, u, v -> callable.accept(t, u, v); Unit }
-@FunctionalInterface
-interface TriConsumer<T, U, V> {
-    fun accept(t: T, u: U, v: V)
-
-    fun andThen(after: TriConsumer<in T, in U, in V>): TriConsumer<T, U, V> {
-        Objects.requireNonNull(after)
-        return object : TriConsumer<T, U, V> {
-            override fun accept(a: T, b: U, c: V) {
-                accept(a, b, c)
-                after.accept(a, b, c)
-            }
-        }
-    }
-}
-
-
-// OTHERS
-val date: String get() = SimpleDateFormat("MMM dd yyyy HH:mm:ss").format(Date())
+val currentDate: String get() = SimpleDateFormat("MMM dd yyyy HH:mm:ss").format(Date())
 
 operator fun File.get(key: String) = File(this, key)
 
@@ -46,9 +21,6 @@ val String.lowerCase get() = toLowerCase()
 
 fun <T> T.eq(other: T) = takeIf { it == other }
 fun <T> T.not(other: T) = takeUnless { it == other }
-
-val Any.unit get() = Unit
-val Any.nul get() = null
 
 fun ex(msg: String) = Exception(msg)
 
@@ -75,20 +47,26 @@ inline fun <reified T : Exception, reified U : Any> catch(
     if (ex is T) default else throw ex
 }
 
-@Deprecated("", ReplaceWith("unitOf(unit, default)"))
-fun unit(unit: String, default: TimeUnit = MINUTES) = unitOf(unit, default)
+fun String.toTimeWithUnit(): Pair<Int, TimeUnit> {
+    val split = split(" ")
+    val time = split[0].toIntOrNull()
+    ?: throw ex("Cannot convert ${split[0]} to integer")
+    val unit = split[1].toTimeUnit()
+    ?: throw ex("Cannot convert ${split[1]} to a time unit")
+    return Pair(time, unit)
+}
 
-fun unitOf(unit: String, default: TimeUnit = MINUTES) =
-        when (unit) {
-            "seconds", "second", "sec", "s" -> SECONDS
-            "minutes", "minute", "min", "m" -> MINUTES
-            "hours", "hour", "h" -> HOURS
-            "days", "day", "d" -> DAYS
-            else -> default
-        }
+fun String.toTimeUnit(default: TimeUnit? = null) =
+    when(this.lowerCase) {
+        "seconds", "second", "sec", "s" -> SECONDS
+        "minutes", "minute", "min", "m" -> MINUTES
+        "hours", "hour", "h" -> HOURS
+        "days", "day", "d" -> DAYS
+        else -> default
+    }
 
 // MESSAGING
-fun text(string: String) = TextComponent(string.replace("&", "§"))
+fun textOf(string: String) = TextComponent(string.replace("&", "§"))
 
 // UPDATES CHECKER
 fun spiget(id: Int): String? = try {
@@ -98,7 +76,7 @@ fun spiget(id: Int): String? = try {
     json.last().asJsonObject["name"].asString
 } catch (e: IOException) { null }
 
-infix fun String.newerThan(v: String): Boolean {
+infix fun String.isNewerThan(v: String) = false.also {
     val s1 = split('.')
     val s2 = v.split('.')
     for (i in 0..Math.max(s1.size, s2.size)) {
@@ -107,5 +85,4 @@ infix fun String.newerThan(v: String): Boolean {
         if (s1[i].toInt() > s2[i].toInt()) return true
         if (s1[i].toInt() < s2[i].toInt()) return false
     }
-    return false
 }

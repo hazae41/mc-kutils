@@ -22,13 +22,13 @@ fun BukkitPlugin.load(file: File, resource: String = file.nameWithoutExtension +
 @Deprecated("Replace with delegated configuration (ConfigFile)")
 fun BukkitPlugin.loadConfig(
         file: File, resource: String = file.name
-): BukkitYamlConfiguration {
+): BukkitConfiguration {
     saveResource(resource, file)
-    return BukkitYamlConfiguration.loadConfiguration(file)
+    return BukkitConfiguration.loadConfiguration(file)
             ?: throw fr.rhaz.minecraft.kotlin.ex("Could not load ${file.name}")
 }
 
-fun saveConfig(config: BukkitYamlConfiguration, file: File) = config.save(file)
+fun saveConfig(config: BukkitConfiguration, file: File) = config.save(file)
 
 fun BukkitPlugin.saveResource(resource: String, file: File) {
     if (file.exists()) return
@@ -254,7 +254,7 @@ open class ConfigFile(autoSave: Boolean = true) : Config(autoSave) {
 
     override fun reload() {
         if (!::file.isInitialized) throw ex("Config is not initialized")
-        config = BukkitYamlConfiguration.loadConfiguration(file)
+        config = BukkitConfiguration.loadConfiguration(file)
                 ?: throw ex("Could not load ${file.name}")
     }
 

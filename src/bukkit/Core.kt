@@ -3,11 +3,8 @@
 
 package fr.rhaz.minecraft.kotlin.bukkit
 
-import fr.rhaz.minecraft.kotlin.catch
-import fr.rhaz.minecraft.kotlin.newerThan
-import fr.rhaz.minecraft.kotlin.spiget
-import fr.rhaz.minecraft.kotlin.text
-import kotlinx.coroutines.launch
+import fr.rhaz.minecraft.kotlin.*
+import kotlinx.coroutines.*
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.chat.ClickEvent
 import org.bukkit.event.player.PlayerJoinEvent
@@ -91,18 +88,18 @@ fun BukkitPlugin.update(
         id: Int,
         color: ChatColor = ChatColor.LIGHT_PURPLE,
         permission: String = "rhaz.update"
-) = catch<Exception>(::log) {
-    kotlinx.coroutines.GlobalScope.launch {
+) = catch<Exception>(::warning) {
+    GlobalScope.launch {
 
         val new = spiget(id)
-                ?: throw Exception("Could not retrieve latest version")
+        ?: throw Exception("Could not retrieve latest version")
 
         val old = description.version
 
-        if (!(new newerThan old)) return@launch
+        if (!(new isNewerThan old)) return@launch
 
         val url = "https://www.spigotmc.org/resources/$id"
-        val message = text(
+        val message = textOf(
                 "An update is available for ${description.name} ($old -> $new): $url"
         ).apply {
             this.color = color

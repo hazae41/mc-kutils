@@ -3,9 +3,7 @@
 
 package fr.rhaz.minecraft.kotlin.bungee
 
-import fr.rhaz.minecraft.kotlin.date
-import fr.rhaz.minecraft.kotlin.get
-import fr.rhaz.minecraft.kotlin.text
+import fr.rhaz.minecraft.kotlin.*
 import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.chat.TextComponent
 import java.io.FileWriter
@@ -45,15 +43,14 @@ fun BungeePlugin.severe(ex: Exception) {
 fun BungeePlugin.logToFile(ex: Exception) = logToFile { ex.printStackTrace(this) }
 fun BungeePlugin.logToFile(msg: String) = logToFile { println(msg) }
 val BungeePlugin.logFile
-    get() =
-        dataFolder["log.txt"].apply { if (!exists()) createNewFile() }
+    get() = dataFolder["log.txt"].apply { if (!exists()) createNewFile() }
 
 fun BungeePlugin.logToFile(action: PrintWriter.() -> Unit) =
         PrintWriter(FileWriter(logFile, true), true)
-                .apply { print(date); action() }.close()
+                .apply { print(currentDate); action() }.close()
 
 
-fun BungeeSender.msg(msg: String) = msg(text(msg))
+fun BungeeSender.msg(msg: String) = msg(textOf(msg))
 fun BungeeSender.msg(text: TextComponent) = sendMessage(text)
 fun BungeeSender.msg(ex: Exception) {
     ex.message?.also(::msg)

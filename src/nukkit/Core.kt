@@ -3,11 +3,11 @@
 
 package fr.rhaz.minecraft.kotlin.nukkit
 
-lateinit var kotlin4Nukkit: Kotlin4NukkitPlugin
+lateinit var kotlinNukkit: Kotlin4NukkitPlugin
 
 class Kotlin4NukkitPlugin : NukkitPlugin() {
     init {
-        kotlin4Nukkit = this
+        kotlinNukkit = this
     }
 }
 

@@ -3,9 +3,9 @@
 
 package fr.rhaz.minecraft.kotlin.bukkit
 
-import fr.rhaz.minecraft.kotlin.date
+import fr.rhaz.minecraft.kotlin.currentDate
 import fr.rhaz.minecraft.kotlin.get
-import fr.rhaz.minecraft.kotlin.text
+import fr.rhaz.minecraft.kotlin.textOf
 import net.md_5.bungee.api.chat.TextComponent
 import org.bukkit.Bukkit
 import java.io.FileWriter
@@ -18,8 +18,7 @@ typealias BukkitEvent = org.bukkit.event.Event
 typealias BukkitListener = org.bukkit.event.Listener
 typealias BukkitEventPriority = org.bukkit.event.EventPriority
 typealias BukkitEventHandler = org.bukkit.event.EventHandler
-typealias BukkitYamlConfiguration = org.bukkit.configuration.file.YamlConfiguration
-typealias BukkitFileConfiguration = org.bukkit.configuration.file.FileConfiguration
+typealias BukkitConfiguration = org.bukkit.configuration.file.YamlConfiguration
 typealias BukkitCommandExecutor = org.bukkit.command.CommandExecutor
 typealias BukkitConfigurationSection = org.bukkit.configuration.ConfigurationSection
 typealias BukkitPlayer = org.bukkit.entity.Player
@@ -43,27 +42,28 @@ fun BukkitPlugin.severe(ex: Exception) {
     ex.message?.also(::severe)
 }
 
-fun BukkitPlugin.log(ex: Exception) = log { ex.printStackTrace(this) }
-fun BukkitPlugin.log(msg: String) = log { println(msg) }
-val BukkitPlugin.log
-    get() =
-        dataFolder["log.txt"].apply { if (!exists()) createNewFile() }
+fun BukkitPlugin.error(ex: Exception){ severe(ex.message ?: "An internal error occured" ); logToFile(ex) }
 
-fun BukkitPlugin.log(action: PrintWriter.() -> Unit) =
-        PrintWriter(FileWriter(log, true), true)
-                .apply { print(date); action() }.close()
+fun BukkitPlugin.logToFile(ex: Exception) = logToFile { ex.printStackTrace(this) }
+fun BukkitPlugin.logtoFile(msg: String) = logToFile { println(msg) }
+val BukkitPlugin.logFile
+    get() = dataFolder["log.txt"].apply { if (!exists()) createNewFile() }
+
+fun BukkitPlugin.logToFile(action: PrintWriter.() -> Unit) =
+        PrintWriter(FileWriter(logFile, true), true)
+                .apply { print(currentDate); action() }.close()
 
 fun BukkitSender.msg(text: TextComponent) = spigot().sendMessage(text)
-fun BukkitSender.msg(msg: String) = msg(text(msg))
+fun BukkitSender.msg(msg: String) = msg(textOf(msg))
 fun BukkitSender.msg(ex: Exception) {
     ex.message?.also(::msg)
 }
 
 fun BukkitSender.execute(cmd: String) = Bukkit.dispatchCommand(this, cmd)
 
-val BukkitYamlConfiguration.keys get() = getKeys(false)
-fun BukkitYamlConfiguration.section(path: String) = getConfigurationSection(path)
-val BukkitYamlConfiguration.sections get() = keys.map { section(it) }
+val BukkitConfiguration.keys get() = getKeys(false)
+fun BukkitConfiguration.section(path: String) = getConfigurationSection(path)
+val BukkitConfiguration.sections get() = keys.map { section(it) }
 val BukkitConfigurationSection.keys get() = getKeys(false)
 fun BukkitConfigurationSection.section(path: String) = getConfigurationSection(path)
 val BukkitConfigurationSection.sections get() = keys.map { section(it) }

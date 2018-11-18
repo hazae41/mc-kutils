@@ -4,7 +4,7 @@
 package fr.rhaz.minecraft.kotlin.nukkit
 
 import cn.nukkit.lang.TextContainer
-import fr.rhaz.minecraft.kotlin.date
+import fr.rhaz.minecraft.kotlin.currentDate
 import fr.rhaz.minecraft.kotlin.get
 import java.io.FileWriter
 import java.io.PrintWriter
@@ -50,7 +50,7 @@ val NukkitPlugin.log
 
 fun NukkitPlugin.log(action: PrintWriter.() -> Unit) =
         PrintWriter(FileWriter(log, true), true)
-                .apply { print(date); action() }.close()
+                .apply { print(currentDate); action() }.close()
 
 fun NukkitSender.msg(msg: String) = sendMessage(msg.replace("&", "§"))
 fun NukkitSender.msg(text: TextContainer) = sendMessage(text.apply { this.text = this.text.replace("&", "§") })

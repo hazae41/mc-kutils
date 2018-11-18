@@ -38,6 +38,7 @@ dependencies {
 
 task toJar (type: Jar){
     destinationDir = file("$rootDir/jar")
+    from sourceSets.main.output
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
 }

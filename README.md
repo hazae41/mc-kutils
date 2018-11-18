@@ -559,7 +559,7 @@ fun complex(arg: Argument?): Result? {
       }
 
       dependencies {
-          compileOnly 'fr.rhaz.minecraft:kotlin4mc:2.1.0'
+          compileOnly 'fr.rhaz.minecraft:kotlin4mc:2.1'
       }
 
 
@@ -576,7 +576,7 @@ fun complex(arg: Argument?): Result? {
         <dependency>
             <groupId>fr.rhaz.minecraft</groupId>
             <artifactId>kotlin4mc</artifactId>
-            <version>2.1.0</version>
+            <version>2.1</version>
             <scope>provided</scope>
         </dependency>
       </dependencies>

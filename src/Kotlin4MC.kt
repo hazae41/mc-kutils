@@ -47,9 +47,11 @@ inline fun <reified T : Exception, reified U : Any> catch(
     if (ex is T) default else throw ex
 }
 
-fun String.toTimeWithUnit(): Pair<Int, TimeUnit> {
+infix fun <T> Boolean.then(param: T): T? = if (this) param else null
+
+fun String.toTimeWithUnit(): Pair<Long, TimeUnit> {
     val split = split(" ")
-    val time = split[0].toIntOrNull()
+    val time = split[0].toLongOrNull()
     ?: throw ex("Cannot convert ${split[0]} to integer")
     val unit = split[1].toTimeUnit()
     ?: throw ex("Cannot convert ${split[1]} to a time unit")

@@ -15,13 +15,13 @@ You can componentize and colorize any message
 ##### With Kotlin4MC
 
 ```kotlin
-textOf("Hello world!")
+textOf("&bHello world!")
 ```
 
 ##### Without Kotlin4MC
 
 ```kotlin
-TextComponent("Hello world".replace("&", "§"))
+TextComponent(*fromLegacyText(ChatColor.translateAlternateColorCodes("&", "&bHello world")))
 ```
 
 ### Simplified messages sending
@@ -31,19 +31,13 @@ Let's send a message to a player (any Player, ProxiedPlayer, CommandSender is su
 ##### With Kotlin4MC
 
 ```kotlin
-player.msg("Hello world!")
-```
-
-##### Without Kotlin4MC (deprecated)
-
-```kotlin
-player.sendMessage("Hello world!".replace("&", "§"))
+player.msg("&bHello world!")
 ```
 
 ##### Without Kotlin4MC (not deprecated)
 
 ```kotlin
-player.sendMessage(TextComponent("Hello world!".replace("&", "§")))
+player.sendMessage(TextComponent(*fromLegacyText(ChatColor.translateAlternateColorCodes("&", "&bHello world"))))
 ```
 
 ### Simplified event listening

@@ -48,8 +48,6 @@ inline fun <reified T : Exception, reified U : Any> catch(
     if (ex is T) default else throw ex
 }
 
-infix fun <T> Boolean.then(param: T): T? = if (this) param else null
-
 fun String.toTimeWithUnit(): Pair<Long, TimeUnit> {
     val split = split(" ")
     val time = split[0].toLongOrNull()

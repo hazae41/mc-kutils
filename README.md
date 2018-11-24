@@ -474,7 +474,7 @@ if(delay == 0) return warning("Delay should not be 0") // Check
       }
 
       dependencies {
-          compileOnly 'fr.rhaz.minecraft:kotlin4mc:2.1'
+          compileOnly 'fr.rhaz.minecraft:kotlin4mc:2.1.1'
       }
 
 
@@ -491,7 +491,7 @@ if(delay == 0) return warning("Delay should not be 0") // Check
         <dependency>
             <groupId>fr.rhaz.minecraft</groupId>
             <artifactId>kotlin4mc</artifactId>
-            <version>2.1</version>
+            <version>2.1.1</version>
             <scope>provided</scope>
         </dependency>
       </dependencies>

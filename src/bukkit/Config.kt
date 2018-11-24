@@ -8,6 +8,7 @@ import fr.rhaz.minecraft.kotlin.get
 import org.bukkit.Color
 import org.bukkit.OfflinePlayer
 import org.bukkit.configuration.ConfigurationSection
+import org.bukkit.configuration.MemorySection
 import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.configuration.serialization.ConfigurationSerializable
 import org.bukkit.inventory.ItemStack
@@ -255,7 +256,7 @@ open class ConfigFile(autoSave: Boolean = true) : Config(autoSave) {
     override fun reload() {
         if (!::file.isInitialized) throw ex("Config is not initialized")
         config = BukkitConfiguration.loadConfiguration(file)
-                ?: throw ex("Could not load ${file.name}")
+        ?: throw ex("Could not load ${file.name}")
     }
 
     override fun save() {
@@ -266,12 +267,12 @@ open class ConfigFile(autoSave: Boolean = true) : Config(autoSave) {
 }
 
 open class ConfigSection(
-        var parent: Config, var path: String, autoSave: Boolean = true
+    var parent: Config, var path: String, autoSave: Boolean = true
 ) : Config(autoSave) {
 
     override fun reload() {
         config = parent.config.getConfigurationSection(path)
-                ?: throw ex("Could not load $path from ${parent.config.name}")
+        ?: throw ex("Could not load $path from ${parent.config.name}")
     }
 
     override fun save() = parent.config.set(path, config)

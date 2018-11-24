@@ -4,6 +4,7 @@ package fr.rhaz.minecraft.kotlin
 
 import com.google.gson.JsonParser
 import net.md_5.bungee.api.chat.TextComponent
+import net.md_5.bungee.api.chat.TextComponent.*
 import java.io.File
 import java.io.IOException
 import java.io.InputStreamReader
@@ -68,7 +69,8 @@ fun String.toTimeUnit(default: TimeUnit? = null) =
     }
 
 // MESSAGING
-fun textOf(string: String) = TextComponent(string.replace("&", "§"))
+fun String.translateColorCode() = replace(Regex("&([A-Za-z0-9])")){"§"+it.groups[1]!!.value}
+fun textOf(string: String) = TextComponent(*fromLegacyText(string.translateColorCode()))
 
 // UPDATES CHECKER
 fun spiget(id: Int): String? = try {

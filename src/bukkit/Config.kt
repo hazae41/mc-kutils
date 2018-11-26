@@ -59,6 +59,13 @@ abstract class Config(open var autoSave: Boolean = true) {
     abstract fun reload()
     abstract fun save()
 
+    operator fun contains(key: String) = config.contains(key)
+    operator fun get(key: String) = config[key]
+    operator fun set(key: String, value: Any){
+        config.set(key, value)
+        if(autoSave) save()
+    }
+
     open inner class any(val path: String, val def: Any? = null) {
         operator fun getValue(ref: Any?, prop: KProperty<*>) = config.get(path, def)
         operator fun setValue(ref: Any?, prop: KProperty<*>, value: Any?) {
@@ -261,7 +268,7 @@ open class ConfigFile(autoSave: Boolean = true) : Config(autoSave) {
 
     override fun save() {
         val config = config as? FileConfiguration
-                ?: throw ex("Could not save ${config.name} to ${file.name}")
+        ?: throw ex("Could not save ${config.name} to ${file.name}")
         config.save(file)
     }
 }
@@ -275,5 +282,8 @@ open class ConfigSection(
         ?: throw ex("Could not load $path from ${parent.config.name}")
     }
 
-    override fun save() = parent.config.set(path, config)
+    override fun save() {
+        parent.config.set(path, config)
+        if(parent.autoSave) parent.save()
+    }
 }

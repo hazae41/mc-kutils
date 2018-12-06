@@ -7,22 +7,18 @@ import fr.rhaz.minecraft.kotlin.*
 import kotlinx.coroutines.*
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.chat.ClickEvent
+import net.md_5.bungee.api.chat.ClickEvent.Action.*
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.scheduler.BukkitTask
 import java.util.concurrent.TimeUnit
 
-// PLUGIN
 lateinit var kotlin4Bukkit: Kotlin4BukkitPlugin
 
 class Kotlin4BukkitPlugin : BukkitPlugin() {
-    init {
-        kotlin4Bukkit = this
-    }
-
-    override fun onEnable() = update(58015, ChatColor.LIGHT_PURPLE)
+    init { kotlin4Bukkit = this }
+    override fun onEnable() = update(58015)
 }
 
-// EVENTS
 @JvmOverloads
 inline fun <reified T : BukkitEvent> BukkitPlugin.listen(
         priority: BukkitEventPriority = BukkitEventPriority.NORMAL,
@@ -33,8 +29,6 @@ inline fun <reified T : BukkitEvent> BukkitPlugin.listen(
         priority, { _, it -> if (it is T) callback(it) },
         this, ignoreCancelled
 )
-
-// COMMANDS
 
 // Command as receiver
 fun BukkitPlugin.command(
@@ -91,27 +85,24 @@ fun BukkitPlugin.update(
         permission: String = "rhaz.update"
 ) = catch<Exception>(::warning) {
     GlobalScope.launch {
-
         val new = spiget(id)
         ?: throw Exception("Could not retrieve latest version")
 
         val old = description.version
-
         if (!(new isNewerThan old)) return@launch
 
         val url = "https://www.spigotmc.org/resources/$id"
-        val message = textOf(
-                "An update is available for ${description.name} ($old -> $new): $url"
-        ).apply {
-            this.color = color
-            clickEvent = ClickEvent(ClickEvent.Action.OPEN_URL, url)
-        }
+        val msg = "${color}An update is available for ${description.name} ($old -> $new): $url"
 
-        schedule { server.consoleSender.msg(message) }
-
+        schedule { server.consoleSender.msg(msg) }
         listen<PlayerJoinEvent> {
-            if (it.player.hasPermission(permission))
-                it.player.msg(message)
+            if(it.player.hasPermission(permission))
+            try{
+                val text = textOf(msg){ clickEvent = ClickEvent(OPEN_URL, url) }
+                it.player.msg(text)
+            } catch (ex: Error){
+                it.player.msg(msg)
+            }
         }
     }
 }

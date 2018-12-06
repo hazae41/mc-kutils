@@ -59,9 +59,9 @@ abstract class Config(open var autoSave: Boolean = true) {
     abstract fun reload()
     abstract fun save()
 
-    operator fun contains(key: String) = config.contains(key)
-    operator fun get(key: String) = config[key]
-    operator fun set(key: String, value: Any){
+    open operator fun contains(key: String) = config.contains(key)
+    open operator fun get(key: String) = config[key]
+    open operator fun set(key: String, value: Any){
         config.set(key, value)
         if(autoSave) save()
     }

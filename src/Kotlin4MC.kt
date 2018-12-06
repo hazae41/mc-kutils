@@ -40,8 +40,8 @@ inline fun <reified T : Exception> catch(
 ): Unit = catch<T, Unit>(err, run)
 
 inline fun <reified T : Exception, reified U : Any> catch(
-        default: U,
-        run: () -> U
+    default: U,
+    run: () -> U
 ): U = try {
     run()
 } catch (ex: Exception) {
@@ -68,7 +68,9 @@ fun String.toTimeUnit(default: TimeUnit? = null) =
 
 // MESSAGING
 fun String.translateColorCode() = replace(Regex("&([A-Za-z0-9])")){"§"+it.groups[1]!!.value}
-fun textOf(string: String) = TextComponent(*fromLegacyText(string.translateColorCode()))
+@JvmOverloads
+fun textOf(string: String, builder: TextComponent.() -> Unit = {})
+    = TextComponent(*fromLegacyText(string.translateColorCode())).apply(builder)
 
 // UPDATES CHECKER
 fun spiget(id: Int): String? = try {

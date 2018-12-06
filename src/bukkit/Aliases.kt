@@ -6,6 +6,7 @@ package fr.rhaz.minecraft.kotlin.bukkit
 import fr.rhaz.minecraft.kotlin.currentDate
 import fr.rhaz.minecraft.kotlin.get
 import fr.rhaz.minecraft.kotlin.textOf
+import fr.rhaz.minecraft.kotlin.translateColorCode
 import net.md_5.bungee.api.chat.TextComponent
 import org.bukkit.Bukkit
 import java.io.FileWriter
@@ -54,9 +55,13 @@ fun BukkitPlugin.logToFile(action: PrintWriter.() -> Unit) =
                 .apply { print(currentDate); action() }.close()
 
 fun BukkitSender.msg(text: TextComponent) = spigot().sendMessage(text)
-fun BukkitSender.msg(msg: String) = msg(textOf(msg))
-fun BukkitSender.msg(ex: Exception) {
-    ex.message?.also(::msg)
+fun BukkitSender.msg(ex: Exception) { ex.message?.also(::msg) }
+fun BukkitSender.msg(msg: String) {
+    try{
+        msg(textOf(msg))
+    } catch (ex: Error) {
+        sendMessage(msg.translateColorCode())
+    }
 }
 
 fun BukkitSender.execute(cmd: String) = Bukkit.dispatchCommand(this, cmd)

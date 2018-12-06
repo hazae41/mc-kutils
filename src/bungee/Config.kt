@@ -41,7 +41,6 @@ fun BungeePlugin.init(vararg configs: ConfigFile) {
     configs.forEach { it.init(this) }
 }
 
-
 abstract class Config(open var autoSave: Boolean = true) {
 
     private lateinit var _config: Configuration
@@ -59,9 +58,9 @@ abstract class Config(open var autoSave: Boolean = true) {
     abstract fun reload()
     abstract fun save()
 
-    operator fun contains(key: String) = config.contains(key)
-    operator fun get(key: String) = config[key]
-    operator fun set(key: String, value: Any){
+    open operator fun contains(key: String) = config.contains(key)
+    open operator fun get(key: String) = config[key]
+    open operator fun set(key: String, value: Any){
         config.set(key, value)
         if(autoSave) save()
     }
@@ -254,7 +253,7 @@ open class ConfigFile(autoSave: Boolean = true) : Config(autoSave) {
 }
 
 open class ConfigSection(
-        var parent: Config, var path: String, autoSave: Boolean = true
+    var parent: Config, var path: String, autoSave: Boolean = true
 ) : Config(autoSave) {
 
     override fun reload() {

@@ -1,9 +1,9 @@
 @file:JvmName("Kotlin4Bungee")
 @file:JvmMultifileClass
 
-package fr.rhaz.minecraft.kotlin.bungee
+package hazae41.minecraft.kotlin.bungee
 
-import fr.rhaz.minecraft.kotlin.*
+import hazae41.minecraft.kotlin.*
 import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.chat.TextComponent
 import java.io.FileWriter

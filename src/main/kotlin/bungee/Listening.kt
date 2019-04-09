@@ -1,7 +1,7 @@
 @file:JvmName("Kotlin4Bungee")
 @file:JvmMultifileClass
 
-package fr.rhaz.minecraft.kotlin.bungee
+package hazae41.minecraft.kotlin.bungee
 
 import net.md_5.bungee.event.EventBus
 import java.lang.reflect.Method

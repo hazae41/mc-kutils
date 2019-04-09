@@ -1,10 +1,10 @@
 @file:JvmName("Kotlin4Bungee")
 @file:JvmMultifileClass
 
-package fr.rhaz.minecraft.kotlin.bungee
+package hazae41.minecraft.kotlin.bungee
 
-import fr.rhaz.minecraft.kotlin.ex
-import fr.rhaz.minecraft.kotlin.get
+import hazae41.minecraft.kotlin.ex
+import hazae41.minecraft.kotlin.get
 import net.md_5.bungee.config.Configuration
 import java.io.File
 import kotlin.reflect.KProperty

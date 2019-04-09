@@ -1,6 +1,6 @@
 @file:JvmName("Kotlin4MC")
 
-package fr.rhaz.minecraft.kotlin
+package hazae41.minecraft.kotlin
 
 import com.google.gson.JsonParser
 import net.md_5.bungee.api.chat.TextComponent

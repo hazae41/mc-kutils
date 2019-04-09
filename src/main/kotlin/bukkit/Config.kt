@@ -1,10 +1,10 @@
 @file:JvmName("Kotlin4Bukkit")
 @file:JvmMultifileClass
 
-package fr.rhaz.minecraft.kotlin.bukkit
+package hazae41.minecraft.kotlin.bukkit
 
-import fr.rhaz.minecraft.kotlin.ex
-import fr.rhaz.minecraft.kotlin.get
+import hazae41.minecraft.kotlin.ex
+import hazae41.minecraft.kotlin.get
 import org.bukkit.Color
 import org.bukkit.OfflinePlayer
 import org.bukkit.configuration.ConfigurationSection
@@ -26,7 +26,7 @@ fun BukkitPlugin.loadConfig(
 ): BukkitConfiguration {
     saveResource(resource, file)
     return BukkitConfiguration.loadConfiguration(file)
-            ?: throw fr.rhaz.minecraft.kotlin.ex("Could not load ${file.name}")
+            ?: throw hazae41.minecraft.kotlin.ex("Could not load ${file.name}")
 }
 
 fun saveConfig(config: BukkitConfiguration, file: File) = config.save(file)

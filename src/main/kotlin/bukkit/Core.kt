@@ -1,9 +1,9 @@
 @file:JvmName("Kotlin4Bukkit")
 @file:JvmMultifileClass
 
-package fr.rhaz.minecraft.kotlin.bukkit
+package hazae41.minecraft.kotlin.bukkit
 
-import fr.rhaz.minecraft.kotlin.*
+import hazae41.minecraft.kotlin.*
 import kotlinx.coroutines.*
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.chat.ClickEvent

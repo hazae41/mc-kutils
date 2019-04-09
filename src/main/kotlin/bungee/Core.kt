@@ -1,12 +1,12 @@
 @file:JvmName("Kotlin4Bungee")
 @file:JvmMultifileClass
 
-package fr.rhaz.minecraft.kotlin.bungee
+package hazae41.minecraft.kotlin.bungee
 
-import fr.rhaz.minecraft.kotlin.catch
-import fr.rhaz.minecraft.kotlin.isNewerThan
-import fr.rhaz.minecraft.kotlin.spiget
-import fr.rhaz.minecraft.kotlin.textOf
+import hazae41.minecraft.kotlin.catch
+import hazae41.minecraft.kotlin.isNewerThan
+import hazae41.minecraft.kotlin.spiget
+import hazae41.minecraft.kotlin.textOf
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import net.md_5.bungee.api.ChatColor

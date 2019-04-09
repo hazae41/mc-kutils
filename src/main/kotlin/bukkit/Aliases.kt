@@ -1,12 +1,12 @@
 @file:JvmName("Kotlin4Bukkit")
 @file:JvmMultifileClass
 
-package fr.rhaz.minecraft.kotlin.bukkit
+package hazae41.minecraft.kotlin.bukkit
 
-import fr.rhaz.minecraft.kotlin.currentDate
-import fr.rhaz.minecraft.kotlin.get
-import fr.rhaz.minecraft.kotlin.textOf
-import fr.rhaz.minecraft.kotlin.translateColorCode
+import hazae41.minecraft.kotlin.currentDate
+import hazae41.minecraft.kotlin.get
+import hazae41.minecraft.kotlin.textOf
+import hazae41.minecraft.kotlin.translateColorCode
 import net.md_5.bungee.api.chat.TextComponent
 import org.bukkit.Bukkit
 import java.io.FileWriter

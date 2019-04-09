@@ -1,0 +1,14 @@
+// Task for creating the jar file
+task bundle (type: Jar){
+    // Clean before
+    dependsOn 'clean'
+    mustRunAfter 'clean'
+    // Output folder
+    destinationDir = file("$rootDir/jar")
+    // Select which source to bundle
+    from sourceSets.main.output
+    // Select which dependencies to bundle
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    // Exclude unnecessary files
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
+}

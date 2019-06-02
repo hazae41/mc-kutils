@@ -226,7 +226,7 @@ open class ConfigFile(var file: File?, autoSave: Boolean = true) : Config(autoSa
     }
 }
 
-open class PluginConfigFile(var path: String, autoSave: Boolean): ConfigFile(null, autoSave)
+open class PluginConfigFile(var path: String, autoSave: Boolean = true): ConfigFile(null, autoSave)
 
 open class ConfigSection(
     var parent: Config, var path: String, autoSave: Boolean = true

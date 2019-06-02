@@ -16,21 +16,6 @@ import org.bukkit.util.Vector
 import java.io.File
 import kotlin.reflect.KProperty
 
-
-@Deprecated("Use loadConfig() instead")
-fun BukkitPlugin.load(file: File, resource: String = file.nameWithoutExtension + "/bukkit.yml") = loadConfig(file, resource)
-
-@Deprecated("Replace with delegated configuration (ConfigFile)")
-fun BukkitPlugin.loadConfig(
-        file: File, resource: String = file.name
-): BukkitConfiguration {
-    saveResource(resource, file)
-    return BukkitConfiguration.loadConfiguration(file)
-            ?: throw hazae41.minecraft.kotlin.ex("Could not load ${file.name}")
-}
-
-fun saveConfig(config: BukkitConfiguration, file: File) = config.save(file)
-
 fun BukkitPlugin.saveResource(resource: String, file: File) {
     if (file.exists()) return
     file.parentFile.mkdirs()
@@ -38,26 +23,22 @@ fun BukkitPlugin.saveResource(resource: String, file: File) {
     getResource(resource).copyTo(file.outputStream())
 }
 
-fun BukkitPlugin.init(vararg configs: ConfigFile) {
-    configs.forEach { it.init(this) }
+fun BukkitPlugin.init(vararg configs: PluginConfigFile) {
+    configs.forEach {
+        if(it.file != null) throw ex("Config is already initialized")
+        val fileName = "${it.path}.yml"
+        val file = dataFolder[fileName]
+        saveResource(fileName, file)
+        it.file = file
+    }
 }
 
 abstract class Config(open var autoSave: Boolean = true) {
 
-    private lateinit var _config: ConfigurationSection
-    var config: ConfigurationSection
-        set(value) {
-            _config = value
-        }
-        get() {
-            if (!::_config.isInitialized) reload()
-            return _config
-        }
+    abstract val config: ConfigurationSection
+    abstract fun save()
 
     open val sections get() = config.sections
-
-    abstract fun reload()
-    abstract fun save()
 
     open operator fun contains(key: String) = config.contains(key)
     open operator fun get(key: String) = config[key]
@@ -228,59 +209,34 @@ abstract class Config(open var autoSave: Boolean = true) {
     }
 }
 
-open class ConfigFile(autoSave: Boolean = true) : Config(autoSave) {
+open class ConfigFile(var file: File?, autoSave: Boolean = true) : Config(autoSave) {
 
-    lateinit var file: File
-
-    constructor(
-            file: File, autoSave: Boolean = true
-    ) : this(autoSave) {
-        this.file = file
-    }
-
-    private lateinit var path: String
-
-    constructor(
-            path: String, autoSave: Boolean = true
-    ) : this(autoSave) {
-        if (!path.endsWith(".yml"))
-            this.path = "$path.yml"
-        else this.path = path
-    }
-
-    fun init(plugin: BukkitPlugin, resource: String = path) {
-        if (::file.isInitialized)
-            throw ex("Config is already initialized")
-
-        file = plugin.dataFolder[path]
-
-        if (resource.endsWith(".yml"))
-            plugin.saveResource(resource, file)
-        else
-            plugin.saveResource("$resource.yml", file)
-    }
-
-    override fun reload() {
-        if (!::file.isInitialized) throw ex("Config is not initialized")
-        config = BukkitConfiguration.loadConfiguration(file)
-        ?: throw ex("Could not load ${file.name}")
-    }
+    override val config: ConfigurationSection
+        get() {
+            val file = file ?: throw ex("Config is not initialized")
+            val config = BukkitConfiguration.loadConfiguration(file)
+            return config ?: throw ex("Could not load ${file.name}")
+        }
 
     override fun save() {
+        val file = file ?: throw ex("Config is not initialized")
         val config = config as? FileConfiguration
         ?: throw ex("Could not save ${config.name} to ${file.name}")
         config.save(file)
     }
 }
 
+open class PluginConfigFile(var path: String, autoSave: Boolean): ConfigFile(null, autoSave)
+
 open class ConfigSection(
     var parent: Config, var path: String, autoSave: Boolean = true
 ) : Config(autoSave) {
 
-    override fun reload() {
-        config = parent.config.getConfigurationSection(path)
-        ?: throw ex("Could not load $path from ${parent.config.name}")
-    }
+    override val config: ConfigurationSection
+        get() {
+            val config = parent.config.getConfigurationSection(path)
+            return config ?: throw ex("Could not load $path from ${parent.config.name}")
+        }
 
     override fun save() {
         parent.config.set(path, config)

@@ -9,18 +9,7 @@ import net.md_5.bungee.config.Configuration
 import java.io.File
 import kotlin.reflect.KProperty
 
-val configProvider get() = BungeeConfigurationProvider.getProvider(BungeeYaml::class.java)
-
-@Deprecated("Use loadConfig() instead")
-fun BungeePlugin.load(file: File, resource: String = file.nameWithoutExtension + "/bungee.yml") = loadConfig(file, resource)
-
-fun BungeePlugin.loadConfig(
-        file: File, resource: String = file.name
-): Configuration {
-    saveResource(resource, file)
-    return configProvider.load(file)
-            ?: throw ex("Could not load ${file.path}")
-}
+val configProvider get() = BungeeConfigurationProvider.getProvider(BungeeYaml::class.java)!!
 
 fun BungeePlugin.saveResource(resource: String, file: File) {
     if (file.exists()) return
@@ -29,34 +18,25 @@ fun BungeePlugin.saveResource(resource: String, file: File) {
     getResourceAsStream(resource).copyTo(file.outputStream())
 }
 
-@Deprecated("Use saveConfig() instead")
-fun BungeePlugin.save(config: BungeeConfiguration, file: File) = saveConfig(config, file)
-
-fun saveConfig(config: BungeeConfiguration, file: File) = configProvider.save(config, file)
-
 fun BungeeConfiguration.section(path: String) = getSection(path)
 val BungeeConfiguration.sections get() = keys.map { section(it) }
 
-fun BungeePlugin.init(vararg configs: ConfigFile) {
-    configs.forEach { it.init(this) }
+fun BungeePlugin.init(vararg configs: PluginConfigFile) {
+    configs.forEach {
+        if(file != null) throw ex("Config is already initialized")
+        val fileName = "${it.path}.yml"
+        val file = dataFolder[fileName]
+        saveResource(fileName, file)
+        it.file = file
+    }
 }
 
 abstract class Config(open var autoSave: Boolean = true) {
 
-    private lateinit var _config: Configuration
-    var config: Configuration
-        set(value) {
-            _config = value
-        }
-        get() {
-            if (!::_config.isInitialized) reload()
-            return _config
-        }
+    abstract val config: Configuration
+    abstract fun save()
 
     open val sections get() = config.sections
-
-    abstract fun reload()
-    abstract fun save()
 
     open operator fun contains(key: String) = config.contains(key)
     open operator fun get(key: String) = config[key]
@@ -213,53 +193,29 @@ abstract class Config(open var autoSave: Boolean = true) {
     }
 }
 
-open class ConfigFile(autoSave: Boolean = true) : Config(autoSave) {
+open class ConfigFile(var file: File?, autoSave: Boolean = true) : Config(autoSave) {
 
-    lateinit var file: File
+    override val config: Configuration
+        get() {
+            val file = file ?: throw ex("Config is not initialized")
+            val config = configProvider.load(file)
+            return config ?: throw ex("Could not load ${file.name}")
+        }
 
-    constructor(
-            file: File, autoSave: Boolean = true
-    ) : this(autoSave) {
-        this.file = file
-    }
-
-    private lateinit var path: String
-
-    constructor(
-            path: String, autoSave: Boolean = true
-    ) : this(autoSave) {
-        if (!path.endsWith(".yml"))
-            this.path = "$path.yml"
-        else this.path = path
-    }
-
-    fun init(plugin: BungeePlugin, resource: String = path) {
-        if (::file.isInitialized)
-            throw ex("Config is already initialized")
-        file = plugin.dataFolder[path]
-        if (resource.endsWith(".yml"))
-            plugin.saveResource(resource, file)
-        else
-            plugin.saveResource("$resource.yml", file)
-    }
-
-    override fun reload() {
-        if (!::file.isInitialized) throw ex("Config is not initialized")
-        config = configProvider.load(file)
-        ?: throw ex("Could not load ${file.name}")
-    }
-
-    override fun save() = saveConfig(config, file)
+    override fun save() = configProvider.save(config, file)
 }
+
+open class PluginConfigFile(var path: String, autoSave: Boolean = true): ConfigFile(null, autoSave)
 
 open class ConfigSection(
     var parent: Config, var path: String, autoSave: Boolean = true
 ) : Config(autoSave) {
 
-    override fun reload() {
-        config = parent.config.getSection(path)
-        ?: throw ex("Could not load $path from ${parent.javaClass.name}")
-    }
+    override val config: Configuration
+        get() {
+            val config = parent.config.getSection(path)
+            return config ?: throw ex("Could not load $path from ${parent.javaClass.name}")
+        }
 
     override fun save() {
         parent.config.set(path, config)

@@ -23,7 +23,7 @@ val BungeeConfiguration.sections get() = keys.map { section(it) }
 
 fun BungeePlugin.init(vararg configs: PluginConfigFile) {
     configs.forEach {
-        if(file != null) throw ex("Config is already initialized")
+        if(it.file != null) throw ex("Config is already initialized")
         val fileName = "${it.path}.yml"
         val file = dataFolder[fileName]
         saveResource(fileName, file)

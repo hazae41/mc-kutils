@@ -13,15 +13,19 @@ fun BungeePlugin.command(
         vararg aliases: String,
         callback: BungeeCommand.(BungeeSender, Array<String>) -> Unit
 ) = object : BungeeCommand(name, permission, *aliases) {
-    override fun execute(sender: BungeeSender, args: Array<String>) = callback(sender, args)
-}.also { proxy.pluginManager.registerCommand(this, it) }
+        override fun execute(sender: BungeeSender, args: Array<String>) = callback(sender, args)
+    }.also {
+        proxy.pluginManager.registerCommand(this, it)
+    }
 
 fun BungeePlugin.command(
         name: String,
         callback: BungeeCommand.(BungeeSender, Array<String>) -> Unit
 ) = object : BungeeCommand(name) {
-    override fun execute(sender: BungeeSender, args: Array<String>) = callback(sender, args)
-}.also { proxy.pluginManager.registerCommand(this, it) }
+        override fun execute(sender: BungeeSender, args: Array<String>) = callback(sender, args)
+    }.also {
+        proxy.pluginManager.registerCommand(this, it)
+    }
 
 // --- SENDER AS RECEIVER ---
 fun BungeePlugin.command(
@@ -39,8 +43,8 @@ fun BungeePlugin.command(
 // EVENTS
 @JvmOverloads
 inline fun <reified T : BungeeEvent> BungeePlugin.listen(
-        priority: Byte = BungeeEventPriority.NORMAL,
-        crossinline callback: (T) -> Unit
+    priority: Byte = BungeeEventPriority.NORMAL,
+    crossinline callback: (T) -> Unit
 ) {
     val pm = proxy.pluginManager
     val pmc = pm::class.java

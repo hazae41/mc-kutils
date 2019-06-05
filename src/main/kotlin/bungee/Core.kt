@@ -15,16 +15,6 @@ import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.event.PostLoginEvent
 import java.util.concurrent.TimeUnit
 
-lateinit var kotlinBungee: Kotlin4BungeePlugin
-
-class Kotlin4BungeePlugin : BungeePlugin() {
-    init {
-        kotlinBungee = this
-    }
-
-    override fun onEnable() = update(58015, LIGHT_PURPLE)
-}
-
 // SCHEDULE
 fun BungeePlugin.schedule(
         async: Boolean = false,

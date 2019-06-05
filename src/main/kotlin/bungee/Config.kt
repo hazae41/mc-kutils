@@ -31,9 +31,11 @@ fun BungeePlugin.init(vararg configs: PluginConfigFile) {
     }
 }
 
-abstract class Config(open var autoSave: Boolean = true) {
+abstract class Config {
 
     abstract var config: Configuration
+
+    open var autoSave = true
 
     open val sections get() = config.sections
 
@@ -153,13 +155,20 @@ abstract class Config(open var autoSave: Boolean = true) {
     }
 }
 
-open class ConfigFile(var file: File?, autoSave: Boolean = true) : Config(autoSave) {
+open class ConfigFile(open var file: File?) : Config() {
+    open var minDelay = 1000L
+
+    private var _config: Configuration? = null
+    private var lastLoad = 0L
 
     override var config: Configuration
         get() {
             val file = file ?: throw ex("Config is not initialized")
-            val config = configProvider.load(file)
-            return config ?: throw ex("Could not load ${file.name}")
+            val currentMillis = System.currentTimeMillis()
+            val delay = currentMillis - lastLoad
+            return _config?.takeUnless { delay > minDelay }
+                ?: configProvider.load(file)?.also { _config = it; lastLoad = currentMillis }
+                ?: throw ex("Could not load ${file.name}")
         }
         set(value) {
             val file = file ?: throw ex("Config is not initialized")
@@ -167,11 +176,11 @@ open class ConfigFile(var file: File?, autoSave: Boolean = true) : Config(autoSa
         }
 }
 
-open class PluginConfigFile(var path: String, autoSave: Boolean = true): ConfigFile(null, autoSave)
+open class PluginConfigFile(open var path: String): ConfigFile(null)
 
 open class ConfigSection(
-    var parent: Config, var path: String, autoSave: Boolean = true
-) : Config(autoSave) {
+    open var parent: Config, open var path: String
+): Config() {
 
     override var config: Configuration
         get() {

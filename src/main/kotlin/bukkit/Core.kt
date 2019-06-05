@@ -12,13 +12,6 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.scheduler.BukkitTask
 import java.util.concurrent.TimeUnit
 
-lateinit var kotlin4Bukkit: Kotlin4BukkitPlugin
-
-class Kotlin4BukkitPlugin : BukkitPlugin() {
-    init { kotlin4Bukkit = this }
-    override fun onEnable() = update(58015)
-}
-
 @JvmOverloads
 inline fun <reified T : BukkitEvent> BukkitPlugin.listen(
         priority: BukkitEventPriority = BukkitEventPriority.NORMAL,

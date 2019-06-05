@@ -20,7 +20,6 @@ operator fun File.get(key: String) = File(this, key)
 
 val String.lowerCase get() = toLowerCase()
 
-fun <T> T.eq(other: T) = takeIf { it == other }
 fun <T> T.not(other: T) = takeUnless { it == other }
 
 fun ex(msg: String) = Exception(msg)

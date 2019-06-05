@@ -49,11 +49,8 @@ fun BungeePlugin.logToFile(action: PrintWriter.() -> Unit) =
         PrintWriter(FileWriter(logFile, true), true)
                 .apply { print(currentDate); action() }.close()
 
-
 fun BungeeSender.msg(msg: String) = msg(textOf(msg))
 fun BungeeSender.msg(text: TextComponent) = sendMessage(text)
-fun BungeeSender.msg(ex: Exception) {
-    ex.message?.also(::msg)
-}
+fun BungeeSender.msg(ex: Exception) { ex.message?.also(::msg) }
 
 fun BungeeSender.execute(cmd: String) = ProxyServer.getInstance().pluginManager.dispatchCommand(this, cmd)

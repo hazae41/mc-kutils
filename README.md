@@ -8,7 +8,7 @@ It includes Kotlin stdlib and a lot of tools for Minecraft plugins development.
 
 [Go to Spigot](https://www.spigotmc.org/resources/kotlin4mc-let-kotlin-improve-your-plugins.58015/)
 
-[Go to JitPack](https://jitpack.io/#Hazae41/Kotlin4MC/master-SNAPSHOT)
+[Go to JitPack](https://jitpack.io/#hazae41/mc-kotlin/master-SNAPSHOT)
 
 # Getting started
 

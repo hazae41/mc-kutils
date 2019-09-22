@@ -1,14 +1,11 @@
 <h3 align=center>
-  <img src="https://i.imgur.com/JHmrNWZ.png"/><br>
-  :potable_water: Spigot & BungeeCord :wavy_dash:
+  <img src="https://i.imgur.com/rrPuKEr.png"/><br>
 </h3>
 <br><hr><br>
 
-It includes Kotlin stdlib and a lot of tools for Minecraft plugins development.
+[Go to Spigot](https://www.spigotmc.org/resources/58015/)
 
-[Go to Spigot](https://www.spigotmc.org/resources/kotlin4mc-let-kotlin-improve-your-plugins.58015/)
-
-[Go to JitPack](https://jitpack.io/#hazae41/mc-kotlin/master-SNAPSHOT)
+[Go to JitPack](https://jitpack.io/#hazae41/mc-kutils/master-SNAPSHOT)
 
 # Getting started
 

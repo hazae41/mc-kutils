@@ -1,10 +1,6 @@
-@file:JvmName("Kotlin4Bungee")
-@file:JvmMultifileClass
+package hazae41.minecraft.kutils.bungee
 
-package hazae41.minecraft.kotlin.bungee
-
-import hazae41.minecraft.kotlin.ex
-import hazae41.minecraft.kotlin.get
+import hazae41.minecraft.kutils.get
 import net.md_5.bungee.config.Configuration
 import java.io.File
 import kotlin.reflect.KProperty
@@ -23,7 +19,7 @@ val BungeeConfiguration.sections get() = keys.map { section(it) }
 
 fun BungeePlugin.init(vararg configs: PluginConfigFile) {
     configs.forEach {
-        if(it.file != null) throw ex("Config is already initialized")
+        if (it.file != null) throw Exception("Config is already initialized")
         val fileName = "${it.path}.yml"
         val file = dataFolder[fileName]
         saveResource(fileName, file)
@@ -43,10 +39,10 @@ abstract class Config {
 
     open operator fun get(key: String) = config[key]
 
-    open operator fun set(key: String, value: Any?){
+    open operator fun set(key: String, value: Any?) {
         val config = config
         config.set(key, value)
-        if(autoSave) this.config = config
+        if (autoSave) this.config = config
     }
 
     open inner class any(val path: String, val def: Any? = null) {
@@ -163,29 +159,29 @@ open class ConfigFile(open var file: File?) : Config() {
 
     override var config: Configuration
         get() {
-            val file = file ?: throw ex("Config is not initialized")
+            val file = file ?: throw Exception("Config is not initialized")
             val currentMillis = System.currentTimeMillis()
             val delay = currentMillis - lastLoad
             return _config?.takeUnless { delay > minDelay }
                 ?: configProvider.load(file)?.also { _config = it; lastLoad = currentMillis }
-                ?: throw ex("Could not load ${file.name}")
+                ?: throw Exception("Could not load ${file.name}")
         }
         set(value) {
-            val file = file ?: throw ex("Config is not initialized")
+            val file = file ?: throw Exception("Config is not initialized")
             configProvider.save(value, file)
         }
 }
 
-open class PluginConfigFile(open var path: String): ConfigFile(null)
+open class PluginConfigFile(open var path: String) : ConfigFile(null)
 
 open class ConfigSection(
     open var parent: Config, open var path: String
-): Config() {
+) : Config() {
 
     override var config: Configuration
         get() {
             val config = parent.config.getSection(path)
-            return config ?: throw ex("Could not load $path from ${parent.javaClass.name}")
+            return config ?: throw Exception("Could not load $path from ${parent.javaClass.name}")
         }
         set(value) {
             parent[path] = value

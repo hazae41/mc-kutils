@@ -4,7 +4,7 @@ fun BungeeSender.execute(cmd: String) = proxy.pluginManager.dispatchCommand(this
 
 fun BungeePlugin.command(
     name: String,
-    permission: String,
+    permission: String? = null,
     vararg aliases: String,
     callback: BungeeCommand.(BungeeSender, Array<String>) -> Unit
 ) = object : BungeeCommand(name, permission, *aliases) {
@@ -15,21 +15,7 @@ fun BungeePlugin.command(
 
 fun BungeePlugin.command(
     name: String,
-    callback: BungeeCommand.(BungeeSender, Array<String>) -> Unit
-) = object : BungeeCommand(name) {
-    override fun execute(sender: BungeeSender, args: Array<String>) = callback(sender, args)
-}.also {
-    proxy.pluginManager.registerCommand(this, it)
-}
-
-fun BungeePlugin.command(
-    name: String,
-    permission: String,
+    permission: String? = null,
     vararg aliases: String,
     callback: BungeeSender.(Array<String>) -> Unit
 ) = command(name, permission, *aliases) { sender, args -> sender.callback(args) }
-
-fun BungeePlugin.command(
-    name: String,
-    callback: BungeeSender.(Array<String>) -> Unit
-) = command(name) { sender, args -> sender.callback(args) }

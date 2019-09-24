@@ -1,6 +1,10 @@
 package hazae41.minecraft.kutils
 
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.concurrent.TimeUnit
+
+val currentDate: String get() = SimpleDateFormat("MMM dd yyyy HH:mm:ss").format(Date())
 
 fun String.toTimeWithUnit(): Pair<Long, TimeUnit> {
     val split = split(" ")
@@ -12,7 +16,7 @@ fun String.toTimeWithUnit(): Pair<Long, TimeUnit> {
 }
 
 fun String.toTimeUnit(default: TimeUnit? = null) =
-    when (this.lowerCase) {
+    when (toLowerCase()) {
         "seconds", "second", "sec", "s" -> TimeUnit.SECONDS
         "minutes", "minute", "min", "m" -> TimeUnit.MINUTES
         "hours", "hour", "h" -> TimeUnit.HOURS

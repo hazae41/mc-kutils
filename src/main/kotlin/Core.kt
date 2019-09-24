@@ -1,13 +1,12 @@
 package hazae41.minecraft.kutils
 
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-
-val currentDate: String get() = SimpleDateFormat("MMM dd yyyy HH:mm:ss").format(Date())
 
 operator fun File.get(key: String) = File(this, key)
 
-val String.lowerCase get() = toLowerCase()
+infix fun String.match(other: String) = purified == other.purified
+
+val String.purified get() = toLowerCase().trim()
 
 fun <T> T.not(other: T) = takeUnless { it == other }
+fun <T> T.notIn(container: Iterable<T>) = takeUnless { it in container }

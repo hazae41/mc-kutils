@@ -9,9 +9,7 @@ fun textOf(string: String, builder: TextComponent.() -> Unit = {}) =
 
 class PluginException(msg: String) : Exception("&c$msg")
 
-fun error(msg: String): Nothing {
-    throw PluginException(msg)
-}
+fun error(msg: String): Nothing = throw PluginException(msg)
 
 fun colored(msg: String?, f: (String) -> Unit) {
     if (!msg.isNullOrBlank()) f(msg.translateColorCode())

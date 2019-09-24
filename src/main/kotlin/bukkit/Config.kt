@@ -1,14 +1,10 @@
-@file:JvmName("Kotlin4Bukkit")
-@file:JvmMultifileClass
-
-package hazae41.minecraft.kotlin.bukkit
+package hazae41.minecraft.kutils.bukkit
 
 import hazae41.minecraft.kotlin.ex
 import hazae41.minecraft.kotlin.get
 import org.bukkit.Color
 import org.bukkit.OfflinePlayer
 import org.bukkit.configuration.ConfigurationSection
-import org.bukkit.configuration.MemorySection
 import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.configuration.serialization.ConfigurationSerializable
 import org.bukkit.inventory.ItemStack
@@ -25,7 +21,7 @@ fun BukkitPlugin.saveResource(resource: String, file: File) {
 
 fun BukkitPlugin.init(vararg configs: PluginConfigFile) {
     configs.forEach {
-        if(it.file != null) throw ex("Config is already initialized")
+        if (it.file != null) throw ex("Config is already initialized")
         val fileName = "${it.path}.yml"
         val file = dataFolder[fileName]
         saveResource(fileName, file)
@@ -45,10 +41,10 @@ abstract class Config {
 
     open operator fun get(key: String) = config[key]
 
-    open operator fun set(key: String, value: Any?){
+    open operator fun set(key: String, value: Any?) {
         val config = config
         config.set(key, value)
-        if(autoSave) this.config = config
+        if (autoSave) this.config = config
     }
 
     open inner class any(val path: String, val def: Any? = null) {
@@ -151,7 +147,11 @@ abstract class Config {
         operator fun setValue(ref: Any?, prop: KProperty<*>, value: Vector?) = set(path, value)
     }
 
-    open inner class serializable<T : ConfigurationSerializable>(val path: String, val clazz: Class<T>, val def: T? = null) {
+    open inner class serializable<T : ConfigurationSerializable>(
+        val path: String,
+        val clazz: Class<T>,
+        val def: T? = null
+    ) {
         operator fun getValue(ref: Any?, prop: KProperty<*>): T? = config.getSerializable(path, clazz, def)
         operator fun setValue(ref: Any?, prop: KProperty<*>, value: T?) = set(path, value)
     }
@@ -162,7 +162,9 @@ abstract class Config {
     }
 
     open inner class section(val path: String) {
-        operator fun getValue(ref: Any?, prop: KProperty<*>): ConfigurationSection? = config.getConfigurationSection(path)
+        operator fun getValue(ref: Any?, prop: KProperty<*>): ConfigurationSection? =
+            config.getConfigurationSection(path)
+
         operator fun setValue(ref: Any?, prop: KProperty<*>, value: ConfigurationSection?) = set(path, value)
     }
 }
@@ -185,12 +187,12 @@ open class ConfigFile(open var file: File?) : Config() {
         set(value) {
             val file = file ?: throw ex("Config is not initialized")
             val config = value as? FileConfiguration
-            ?: throw ex("Could not save ${config.name} to ${file.name}")
+                ?: throw ex("Could not save ${config.name} to ${file.name}")
             config.save(file)
         }
 }
 
-open class PluginConfigFile(open var path: String): ConfigFile(null)
+open class PluginConfigFile(open var path: String) : ConfigFile(null)
 
 open class ConfigSection(
     open var parent: Config, open var path: String

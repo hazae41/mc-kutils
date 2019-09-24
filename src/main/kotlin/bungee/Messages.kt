@@ -17,6 +17,11 @@ fun BungeePlugin.warning(msg: Throwable) = info(msg.message)
 fun BungeePlugin.severe(msg: String?) = colored(msg, logger::severe)
 fun BungeePlugin.severe(msg: Throwable) = info(msg.message)
 
+fun BungeePlugin.error(ex: Exception) {
+    severe(ex.message ?: "&cAn internal error occured, check the logs");
+    logToFile(ex)
+}
+
 fun BungeePlugin.logToFile(ex: Exception) = logToFile { ex.printStackTrace(this) }
 fun BungeePlugin.logToFile(msg: String) = logToFile { println(msg) }
 

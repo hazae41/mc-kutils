@@ -14,7 +14,7 @@ import net.md_5.bungee.api.event.PostLoginEvent
 fun BungeePlugin.update(
     id: Int,
     color: ChatColor = LIGHT_PURPLE,
-    permission: String = "rhaz.update"
+    permission: String = "kutils.update"
 ) = catch<Exception>(::warning) {
     GlobalScope.launch {
         val new = spiget(id)

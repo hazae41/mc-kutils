@@ -4,6 +4,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
+val String.purified get() = toLowerCase().trim()
+
+infix fun String.match(other: String) = purified == other.purified
+
 val currentDate: String get() = SimpleDateFormat("MMM dd yyyy HH:mm:ss").format(Date())
 
 fun String.toTimeWithUnit(): Pair<Long, TimeUnit> {

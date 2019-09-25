@@ -1,5 +1,9 @@
 package hazae41.minecraft.kutils.bukkit
 
+import org.bukkit.Bukkit
+
+fun BukkitSender.execute(cmd: String) = Bukkit.dispatchCommand(this, cmd)
+
 fun BukkitPlugin.command(
     name: String, permission: String? = null, vararg aliases: String,
     executor: BukkitPluginCommand.(BukkitSender, Array<String>) -> Unit

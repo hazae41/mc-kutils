@@ -18,11 +18,4 @@ typealias BukkitConfig = Config
 typealias BukkitConfigFile = ConfigFile
 typealias BukkitConfigSection = ConfigSection
 
-fun BukkitSender.execute(cmd: String) = Bukkit.dispatchCommand(this, cmd)
-
-val BukkitConfiguration.keys get() = getKeys(false)
-fun BukkitConfiguration.section(path: String) = getConfigurationSection(path)
-val BukkitConfiguration.sections get() = keys.map { section(it) }
-val BukkitConfigurationSection.keys get() = getKeys(false)
-fun BukkitConfigurationSection.section(path: String) = getConfigurationSection(path)
-val BukkitConfigurationSection.sections get() = keys.map { section(it) }
+val server get() = Bukkit.getServer()

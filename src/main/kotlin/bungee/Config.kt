@@ -5,6 +5,9 @@ import net.md_5.bungee.config.Configuration
 import java.io.File
 import kotlin.reflect.KProperty
 
+fun BungeeConfiguration.section(path: String) = getSection(path)
+val BungeeConfiguration.sections get() = keys.map { section(it) }
+
 val configProvider get() = BungeeConfigurationProvider.getProvider(BungeeYaml::class.java)!!
 
 fun BungeePlugin.saveResource(resource: String, file: File) {
@@ -13,9 +16,6 @@ fun BungeePlugin.saveResource(resource: String, file: File) {
     file.createNewFile()
     getResourceAsStream(resource).copyTo(file.outputStream())
 }
-
-fun BungeeConfiguration.section(path: String) = getSection(path)
-val BungeeConfiguration.sections get() = keys.map { section(it) }
 
 fun BungeePlugin.init(vararg configs: PluginConfigFile) {
     configs.forEach {

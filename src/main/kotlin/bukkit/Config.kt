@@ -1,7 +1,6 @@
 package hazae41.minecraft.kutils.bukkit
 
-import hazae41.minecraft.kotlin.ex
-import hazae41.minecraft.kotlin.get
+import hazae41.minecraft.kutils.get
 import org.bukkit.Color
 import org.bukkit.OfflinePlayer
 import org.bukkit.configuration.ConfigurationSection
@@ -12,16 +11,24 @@ import org.bukkit.util.Vector
 import java.io.File
 import kotlin.reflect.KProperty
 
+val BukkitConfiguration.keys get() = getKeys(false)
+fun BukkitConfiguration.section(path: String) = getConfigurationSection(path)
+val BukkitConfiguration.sections get() = keys.map { section(it) }
+
+val BukkitConfigurationSection.keys get() = getKeys(false)
+fun BukkitConfigurationSection.section(path: String) = getConfigurationSection(path)
+val BukkitConfigurationSection.sections get() = keys.map { section(it) }
+
 fun BukkitPlugin.saveResource(resource: String, file: File) {
     if (file.exists()) return
     file.parentFile.mkdirs()
     file.createNewFile()
-    getResource(resource).copyTo(file.outputStream())
+    getResource(resource)!!.copyTo(file.outputStream())
 }
 
 fun BukkitPlugin.init(vararg configs: PluginConfigFile) {
     configs.forEach {
-        if (it.file != null) throw ex("Config is already initialized")
+        if (it.file != null) throw Exception("Config is already initialized")
         val fileName = "${it.path}.yml"
         val file = dataFolder[fileName]
         saveResource(fileName, file)
@@ -53,7 +60,7 @@ abstract class Config {
     }
 
     open inner class list(val path: String, val def: List<Any> = emptyList()) {
-        operator fun getValue(ref: Any?, prop: KProperty<*>): List<*> = config.getList(path)
+        operator fun getValue(ref: Any?, prop: KProperty<*>): List<*> = config.getList(path).orEmpty()
         operator fun setValue(ref: Any?, prop: KProperty<*>, value: List<Any>) = set(path, value)
     }
 
@@ -68,7 +75,7 @@ abstract class Config {
     }
 
     open inner class string(val path: String, val def: String = "") {
-        operator fun getValue(ref: Any?, prop: KProperty<*>): String = config.getString(path, def)
+        operator fun getValue(ref: Any?, prop: KProperty<*>): String = config.getString(path, def)!!
         operator fun setValue(ref: Any?, prop: KProperty<*>, value: String) = set(path, value)
     }
 
@@ -177,17 +184,17 @@ open class ConfigFile(open var file: File?) : Config() {
 
     override var config: ConfigurationSection
         get() {
-            val file = file ?: throw ex("Config is not initialized")
+            val file = file ?: throw Exception("Config is not initialized")
             val currentMillis = System.currentTimeMillis()
             val delay = currentMillis - lastLoad
             return _config?.takeUnless { delay > minDelay }
                 ?: BukkitConfiguration.loadConfiguration(file)?.also { _config = it; lastLoad = currentMillis }
-                ?: throw ex("Could not load ${file.name}")
+                ?: throw Exception("Could not load ${file.name}")
         }
         set(value) {
-            val file = file ?: throw ex("Config is not initialized")
+            val file = file ?: throw Exception("Config is not initialized")
             val config = value as? FileConfiguration
-                ?: throw ex("Could not save ${config.name} to ${file.name}")
+                ?: throw Exception("Could not save ${config.name} to ${file.name}")
             config.save(file)
         }
 }
@@ -201,7 +208,7 @@ open class ConfigSection(
     override var config: ConfigurationSection
         get() {
             val config = parent.config.getConfigurationSection(path)
-            return config ?: throw ex("Could not load $path from ${parent.config.name}")
+            return config ?: throw Exception("Could not load $path from ${parent.config.name}")
         }
         set(value) {
             parent[path] = value

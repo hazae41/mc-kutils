@@ -6,7 +6,7 @@ group 'hazae41'
 version '3.3'
 
 apply from: 'spigot.gradle'
-apply from: 'bungeecord.gradle'
+apply from: 'bungee.gradle'
 
 repositories {
     mavenCentral()

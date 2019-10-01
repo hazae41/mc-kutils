@@ -3,36 +3,9 @@
 </h3>
 <br><hr><br>
 
-[Go to Spigot](https://www.spigotmc.org/resources/58015/)
+### [Go to Spigot](https://www.spigotmc.org/resources/58015/)
 
-[Go to JitPack](https://jitpack.io/#hazae41/mc-kutils/master-SNAPSHOT)
-
-# Getting started
-
-To avoid classpath conflict, you need to use package relocation
-
-Add the following **at the top** of your **build.gradle**
-
-    plugins {
-        id 'com.github.johnrengelman.shadow' version '4.0.2'
-    }
-
-    import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
-    task relocateShadowJar(type: ConfigureShadowRelocation) {
-        target = tasks.shadowJar
-        prefix = rootProject.name
-    }
-    
-    tasks.shadowJar {
-        classifier = 'bundle'
-        dependsOn tasks.relocateShadowJar
-    }
-
-    artifacts {
-        archives shadowJar
-    }
-    
-Then use the shadowJar task to build your jar
+### [Go to JitPack](https://jitpack.io/#hazae41/mc-kutils/master-SNAPSHOT)
 
 # Usage
 
@@ -114,11 +87,11 @@ listen<PlayerJoinEvent>(HIGHEST){
 
 ```kotlin
 schedule(delay = 10){
-    // this will be executed after 10 ticks
+    // this will be executed after 10 seconds
 }
 
 schedule(delay = 10, period = 20){
-    // this will be executed after 10 ticks then each 20 ticks (1 second)
+    // this will be executed after 10 seconds then each 20 seconds
 }
 
 schedule(async = true){
@@ -126,7 +99,7 @@ schedule(async = true){
 }
 
 schedule(true, delay = 20){
-    // this will be executed asynchronously after 20 ticks (1 second)
+    // this will be executed asynchronously after 20 seconds
 }
 
 schedule(true, period = 3, unit = TimeUnit.MINUTES){
@@ -139,12 +112,6 @@ schedule(period = ...) {
 }
 
 ```
-
-Warning: the default unit is ticks, even on BungeeCord
-
-Warning 2: never use TimeUnit.NANOSECONDS and TimeUnit.MICROSECONDS
-
-Warning 3: do not use TimeUnit.MILLISECONDS with Bukkit
 
 ### Fast access to files of a directory
 
@@ -178,20 +145,6 @@ class MyPluginOnBukkit: BukkitPlugin(){
 ```
 
 ##### Without Kotlin4MC: two separated files for each platform
-
-### Simple lower case
-
-You can use .lc after any String to get its lower case version
-
-##### With Kotlin4MC
-```kotlin
-"HeLLo WorLd".lowerCase
-```
-
-##### Without Kotlin4MC
-```kotlin
-"HeLLo WorLd".toLowerCase() 
-```
 
 ### Simple configuration loading
 
@@ -278,7 +231,7 @@ object MySection: ConfigSection(MyConfig, "mysection"){
 }
 ````
 
-It is recommended to use objects instead of class, but you can use them if you need parameters
+And parameters
 ````kotlin
 inner class PlayerInfo(uuid: UUID): ConfigFile(dataFolder["$uuid.yml"]){
     val friends by stringList("friends")
@@ -469,17 +422,13 @@ val msg = catch(::default){
 info("The message is: $msg")
 ```
 
-### Short equality checks
+### Short inequality checks
 
-You can use .not() and .eq() to check inequality/equality of any object
+You can use .not() to check inequality of any object
 
 "object.not(other)":
 - returns null if object == other
 - returns object if object != other
-
-"object.eq(other)":
-- returns null if object != other
-- returns object if object == other
 
 ##### With Kotlin4MC
 ```kotlin

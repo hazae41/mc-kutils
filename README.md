@@ -3,9 +3,9 @@
 </h3>
 <br><hr><br>
 
-[Go to Spigot](https://www.spigotmc.org/resources/58015/)
+### [Go to Spigot](https://www.spigotmc.org/resources/58015/)
 
-[Go to JitPack](https://jitpack.io/#hazae41/mc-kutils/master-SNAPSHOT)
+### [Go to JitPack](https://jitpack.io/#hazae41/mc-kutils/master-SNAPSHOT)
 
 # Usage
 

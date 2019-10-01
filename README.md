@@ -114,11 +114,11 @@ listen<PlayerJoinEvent>(HIGHEST){
 
 ```kotlin
 schedule(delay = 10){
-    // this will be executed after 10 ticks
+    // this will be executed after 10 seconds
 }
 
 schedule(delay = 10, period = 20){
-    // this will be executed after 10 ticks then each 20 ticks (1 second)
+    // this will be executed after 10 seconds then each 20 seconds
 }
 
 schedule(async = true){
@@ -126,7 +126,7 @@ schedule(async = true){
 }
 
 schedule(true, delay = 20){
-    // this will be executed asynchronously after 20 ticks (1 second)
+    // this will be executed asynchronously after 20 seconds
 }
 
 schedule(true, period = 3, unit = TimeUnit.MINUTES){
@@ -139,12 +139,6 @@ schedule(period = ...) {
 }
 
 ```
-
-Warning: the default unit is ticks, even on BungeeCord
-
-Warning 2: never use TimeUnit.NANOSECONDS and TimeUnit.MICROSECONDS
-
-Warning 3: do not use TimeUnit.MILLISECONDS with Bukkit
 
 ### Fast access to files of a directory
 
@@ -178,20 +172,6 @@ class MyPluginOnBukkit: BukkitPlugin(){
 ```
 
 ##### Without Kotlin4MC: two separated files for each platform
-
-### Simple lower case
-
-You can use .lc after any String to get its lower case version
-
-##### With Kotlin4MC
-```kotlin
-"HeLLo WorLd".lowerCase
-```
-
-##### Without Kotlin4MC
-```kotlin
-"HeLLo WorLd".toLowerCase() 
-```
 
 ### Simple configuration loading
 
@@ -278,7 +258,7 @@ object MySection: ConfigSection(MyConfig, "mysection"){
 }
 ````
 
-It is recommended to use objects instead of class, but you can use them if you need parameters
+And parameters
 ````kotlin
 inner class PlayerInfo(uuid: UUID): ConfigFile(dataFolder["$uuid.yml"]){
     val friends by stringList("friends")
@@ -469,17 +449,13 @@ val msg = catch(::default){
 info("The message is: $msg")
 ```
 
-### Short equality checks
+### Short inequality checks
 
-You can use .not() and .eq() to check inequality/equality of any object
+You can use .not() to check inequality of any object
 
 "object.not(other)":
 - returns null if object == other
 - returns object if object != other
-
-"object.eq(other)":
-- returns null if object != other
-- returns object if object == other
 
 ##### With Kotlin4MC
 ```kotlin

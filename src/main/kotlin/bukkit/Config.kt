@@ -1,7 +1,9 @@
 package hazae41.minecraft.kutils.bukkit
 
 import hazae41.minecraft.kutils.get
+import org.bukkit.Bukkit
 import org.bukkit.Color
+import org.bukkit.Location
 import org.bukkit.OfflinePlayer
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.FileConfiguration
@@ -152,6 +154,36 @@ abstract class Config {
     open inner class vector(val path: String, val def: Vector? = null) {
         operator fun getValue(ref: Any?, prop: KProperty<*>): Vector? = config.getVector(path, def)
         operator fun setValue(ref: Any?, prop: KProperty<*>, value: Vector?) = set(path, value)
+    }
+
+    open inner class location(val path: String, val def: Location? = null) {
+        operator fun getValue(ref: Any?, prop: KProperty<*>): Location? {
+            val x = config.getDouble("$path.x")
+            val y = config.getDouble("$path.y")
+            val z = config.getDouble("$path.z")
+            val yaw = config.getDouble("$path.yaw").toFloat()
+            val pitch = config.getDouble("$path.pitch").toFloat()
+            val worldName = config.getString("$path.world") ?: "world"
+            return Location(Bukkit.getWorld(worldName), x, y, z, yaw, pitch)
+        }
+        operator fun setValue(ref: Any?, prop: KProperty<*>, value: Location?) {
+            if(value == null){
+                set(path, null)
+                return
+            }
+            val x = value.x
+            val y = value.y
+            val z = value.z
+            val yaw = value.yaw
+            val pitch = value.pitch
+            val worldName = value.world?.name ?: "world"
+            set("$path.x", x)
+            set("$path.y", y)
+            set("$path.z", z)
+            set("$path.yaw", yaw)
+            set("$path.pitch", pitch)
+            set("$path.world", worldName)
+        }
     }
 
     open inner class serializable<T : ConfigurationSerializable>(

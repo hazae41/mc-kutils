@@ -1,7 +1,6 @@
 package hazae41.minecraft.kutils.bukkit
 
 import hazae41.minecraft.kutils.get
-import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.Location
 import org.bukkit.OfflinePlayer
@@ -157,39 +156,14 @@ abstract class Config {
     }
 
     open inner class location(val path: String, val def: Location? = null) {
-        operator fun getValue(ref: Any?, prop: KProperty<*>): Location? {
-            val x = config.getDouble("$path.x")
-            val y = config.getDouble("$path.y")
-            val z = config.getDouble("$path.z")
-            val yaw = config.getDouble("$path.yaw").toFloat()
-            val pitch = config.getDouble("$path.pitch").toFloat()
-            val worldName = config.getString("$path.world") ?: "world"
-            return Location(Bukkit.getWorld(worldName), x, y, z, yaw, pitch)
-        }
-        operator fun setValue(ref: Any?, prop: KProperty<*>, value: Location?) {
-            if(value == null){
-                set(path, null)
-                return
-            }
-            val x = value.x
-            val y = value.y
-            val z = value.z
-            val yaw = value.yaw
-            val pitch = value.pitch
-            val worldName = value.world?.name ?: "world"
-            set("$path.x", x)
-            set("$path.y", y)
-            set("$path.z", z)
-            set("$path.yaw", yaw)
-            set("$path.pitch", pitch)
-            set("$path.world", worldName)
-        }
+        operator fun getValue(ref: Any?, prop: KProperty<*>): Location? = config.getLocation(path, def)
+        operator fun setValue(ref: Any?, prop: KProperty<*>, value: Location?) = set(path, value)
     }
 
     open inner class serializable<T : ConfigurationSerializable>(
-        val path: String,
-        val clazz: Class<T>,
-        val def: T? = null
+            val path: String,
+            val clazz: Class<T>,
+            val def: T? = null
     ) {
         operator fun getValue(ref: Any?, prop: KProperty<*>): T? = config.getSerializable(path, clazz, def)
         operator fun setValue(ref: Any?, prop: KProperty<*>, value: T?) = set(path, value)
@@ -201,9 +175,7 @@ abstract class Config {
     }
 
     open inner class section(val path: String) {
-        operator fun getValue(ref: Any?, prop: KProperty<*>): ConfigurationSection? =
-            config.getConfigurationSection(path)
-
+        operator fun getValue(ref: Any?, prop: KProperty<*>): ConfigurationSection? = config.getConfigurationSection(path)
         operator fun setValue(ref: Any?, prop: KProperty<*>, value: ConfigurationSection?) = set(path, value)
     }
 }
@@ -220,13 +192,13 @@ open class ConfigFile(open var file: File?) : Config() {
             val currentMillis = System.currentTimeMillis()
             val delay = currentMillis - lastLoad
             return _config?.takeUnless { delay > minDelay }
-                ?: BukkitConfiguration.loadConfiguration(file)?.also { _config = it; lastLoad = currentMillis }
-                ?: throw Exception("Could not load ${file.name}")
+                    ?: BukkitConfiguration.loadConfiguration(file)?.also { _config = it; lastLoad = currentMillis }
+                    ?: throw Exception("Could not load ${file.name}")
         }
         set(value) {
             val file = file ?: throw Exception("Config is not initialized")
             val config = value as? FileConfiguration
-                ?: throw Exception("Could not save ${config.name} to ${file.name}")
+                    ?: throw Exception("Could not save ${config.name} to ${file.name}")
             config.save(file)
         }
 }
@@ -234,7 +206,7 @@ open class ConfigFile(open var file: File?) : Config() {
 open class PluginConfigFile(open var path: String) : ConfigFile(null)
 
 open class ConfigSection(
-    open var parent: Config, open var path: String
+        open var parent: Config, open var path: String
 ) : Config() {
 
     override var config: ConfigurationSection

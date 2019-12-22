@@ -11,13 +11,13 @@ import net.md_5.bungee.api.chat.ClickEvent
 import org.bukkit.event.player.PlayerJoinEvent
 
 fun BukkitPlugin.update(
-    id: Int,
-    color: ChatColor = ChatColor.LIGHT_PURPLE,
-    permission: String = "rhaz.update"
+        id: Int,
+        color: ChatColor = ChatColor.LIGHT_PURPLE,
+        permission: String = "kutils.update"
 ) = catch<Exception>(::warning) {
     GlobalScope.launch {
         val new = spiget(id)
-            ?: throw Exception("Could not retrieve latest version")
+                ?: throw Exception("Could not retrieve latest version")
 
         val old = description.version
         if (!(new isNewerThan old)) return@launch
